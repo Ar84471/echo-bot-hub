@@ -1,9 +1,13 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { saveChatSession, loadChatSession } from '@/utils/storage';
+import { generateAIResponse, getTypingDelay } from '@/utils/aiResponses';
 
 interface Agent {
   id: string;
@@ -21,6 +25,7 @@ interface Message {
   text: string;
   sender: 'user' | 'agent';
   timestamp: Date;
+  agentId: string;
 }
 
 interface ChatInterfaceProps {
@@ -29,17 +34,11 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: `Neural connection established. I'm ${agent.name}. ${agent.description} How may I process your request?`,
-      sender: 'agent',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -49,46 +48,118 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Load existing chat session or create initial greeting
+    const existingSession = loadChatSession(agent.id);
+    
+    if (existingSession && existingSession.messages.length > 0) {
+      // Convert string dates back to Date objects
+      const messagesWithDates = existingSession.messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+      setMessages(messagesWithDates);
+    } else {
+      // Create initial greeting message
+      const greetingMessage: Message = {
+        id: '1',
+        text: generateAIResponse(agent, '', true),
+        sender: 'agent',
+        timestamp: new Date(),
+        agentId: agent.id
+      };
+      setMessages([greetingMessage]);
+      
+      // Save initial session
+      saveChatSession({
+        agentId: agent.id,
+        messages: [greetingMessage],
+        lastUpdated: new Date()
+      });
+    }
+  }, [agent]);
+
+  const saveCurrentSession = (newMessages: Message[]) => {
+    saveChatSession({
+      agentId: agent.id,
+      messages: newMessages,
+      lastUpdated: new Date()
+    });
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: inputMessage.trim(),
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      agentId: agent.id
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "Processing your request through neural pathways. Analyzing optimal solution vectors...",
-        "Neural networks activated. Cross-referencing data matrices for comprehensive response...",
-        "Engaging advanced cognitive algorithms. Synthesizing multi-dimensional analysis...",
-        "Quantum processing initiated. Generating optimal response framework...",
-        "Neural interface synchronized. Deploying specialized knowledge matrices...",
-        "Cognitive engines online. Processing through advanced neural architectures..."
-      ];
+    // Save user message immediately
+    saveCurrentSession(newMessages);
 
-      const agentResponse: Message = {
+    try {
+      // Simulate AI processing delay
+      const delay = getTypingDelay();
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      const aiResponse = generateAIResponse(agent, userMessage.text);
+      
+      const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: responses[Math.floor(Math.random() * responses.length)],
+        text: aiResponse,
         sender: 'agent',
-        timestamp: new Date()
+        timestamp: new Date(),
+        agentId: agent.id
       };
 
-      setMessages(prev => [...prev, agentResponse]);
+      const finalMessages = [...newMessages, agentMessage];
+      setMessages(finalMessages);
       setIsTyping(false);
-    }, 1000 + Math.random() * 2000);
+      
+      // Save complete conversation
+      saveCurrentSession(finalMessages);
+      
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      setIsTyping(false);
+      toast({
+        title: "Neural Connection Error",
+        description: "Unable to process request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleClearChat = () => {
+    const greetingMessage: Message = {
+      id: Date.now().toString(),
+      text: generateAIResponse(agent, '', true),
+      sender: 'agent',
+      timestamp: new Date(),
+      agentId: agent.id
+    };
+    
+    setMessages([greetingMessage]);
+    saveCurrentSession([greetingMessage]);
+    
+    toast({
+      title: "Neural Session Reset",
+      description: "Chat history has been cleared and neural pathways reinitialized.",
+    });
   };
 
   return (
@@ -127,9 +198,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               </div>
             </div>
 
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleClearChat}
+                className="text-gray-400 hover:text-white hover:bg-gray-800"
+              >
+                Reset
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -203,12 +284,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                   placeholder={`Transmit to ${agent.name}...`}
                   className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
                   disabled={isTyping}
+                  maxLength={500}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  disabled
                 >
                   <Paperclip className="w-4 h-4" />
                 </Button>

@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, MessageCircle, Settings, Trash2, Bot, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import CreateAgentModal from '@/components/CreateAgentModal';
 import ChatInterface from '@/components/ChatInterface';
+import { loadAgents, saveAgents, updateAgentLastUsed } from '@/utils/storage';
 
 interface Agent {
   id: string;
@@ -19,42 +21,16 @@ interface Agent {
 }
 
 const Index = () => {
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: '1',
-      name: 'Assistant Pro',
-      description: 'A versatile AI assistant for general tasks and productivity',
-      type: 'General Assistant',
-      avatar: '🤖',
-      isActive: true,
-      lastUsed: '2 hours ago',
-      capabilities: ['Text Generation', 'Analysis', 'Problem Solving']
-    },
-    {
-      id: '2',
-      name: 'Code Mentor',
-      description: 'Specialized AI for programming help and code review',
-      type: 'Developer Assistant',
-      avatar: '💻',
-      isActive: true,
-      lastUsed: '1 day ago',
-      capabilities: ['Code Review', 'Debugging', 'Architecture']
-    },
-    {
-      id: '3',
-      name: 'Creative Writer',
-      description: 'AI companion for creative writing and storytelling',
-      type: 'Creative Assistant',
-      avatar: '✍️',
-      isActive: false,
-      lastUsed: '3 days ago',
-      capabilities: ['Creative Writing', 'Storytelling', 'Content Creation']
-    }
-  ]);
-
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadedAgents = loadAgents();
+    setAgents(loadedAgents);
+  }, []);
 
   const handleCreateAgent = (newAgent: Omit<Agent, 'id' | 'lastUsed'>) => {
     const agent: Agent = {
@@ -62,15 +38,42 @@ const Index = () => {
       id: Date.now().toString(),
       lastUsed: 'Just created'
     };
-    setAgents([...agents, agent]);
+    const updatedAgents = [...agents, agent];
+    setAgents(updatedAgents);
+    saveAgents(updatedAgents);
     setIsCreateModalOpen(false);
+    
+    toast({
+      title: "Agent Deployed Successfully",
+      description: `${agent.name} has been activated in the neural network.`,
+    });
   };
 
   const handleDeleteAgent = (agentId: string) => {
-    setAgents(agents.filter(agent => agent.id !== agentId));
+    const agentToDelete = agents.find(a => a.id === agentId);
+    const updatedAgents = agents.filter(agent => agent.id !== agentId);
+    setAgents(updatedAgents);
+    saveAgents(updatedAgents);
+    
+    if (agentToDelete) {
+      toast({
+        title: "Agent Decommissioned",
+        description: `${agentToDelete.name} has been removed from the neural network.`,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChatWithAgent = (agent: Agent) => {
+    updateAgentLastUsed(agent.id);
+    // Update local state immediately
+    setAgents(prevAgents => 
+      prevAgents.map(a => 
+        a.id === agent.id 
+          ? { ...a, lastUsed: 'Just now', isActive: true }
+          : a
+      )
+    );
     setSelectedAgent(agent);
     setShowChat(true);
   };
@@ -78,11 +81,17 @@ const Index = () => {
   const handleBackToDashboard = () => {
     setShowChat(false);
     setSelectedAgent(null);
+    // Reload agents to reflect any changes
+    const updatedAgents = loadAgents();
+    setAgents(updatedAgents);
   };
 
   if (showChat && selectedAgent) {
     return <ChatInterface agent={selectedAgent} onBack={handleBackToDashboard} />;
   }
+
+  const activeAgents = agents.filter(a => a.isActive).length;
+  const totalSessions = agents.reduce((acc, agent) => acc + (agent.isActive ? 1 : 0), 0) * 3; // Simulate sessions
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900">
@@ -133,7 +142,7 @@ const Index = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Active Agents</p>
-                  <p className="text-3xl font-bold text-green-400">{agents.filter(a => a.isActive).length}</p>
+                  <p className="text-3xl font-bold text-green-400">{activeAgents}</p>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center">
                   <div className="w-3 h-3 rounded-full bg-green-400"></div>
@@ -147,7 +156,7 @@ const Index = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Neural Sessions</p>
-                  <p className="text-3xl font-bold text-violet-400">12</p>
+                  <p className="text-3xl font-bold text-violet-400">{totalSessions}</p>
                 </div>
                 <MessageCircle className="w-8 h-8 text-violet-400" />
               </div>
@@ -184,7 +193,7 @@ const Index = () => {
                   </CardDescription>
                   
                   <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-2">Capabilities:</p>
+                    <p className="text-xs text-gray-400 mb-2">Neural Capabilities:</p>
                     <div className="flex flex-wrap gap-1">
                       {agent.capabilities.map((capability, index) => (
                         <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
@@ -195,7 +204,7 @@ const Index = () => {
                   </div>
                   
                   <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
-                    <span>Last active: {agent.lastUsed}</span>
+                    <span>Last neural sync: {agent.lastUsed}</span>
                   </div>
                   
                   <div className="flex space-x-2">
@@ -205,7 +214,7 @@ const Index = () => {
                       size="sm"
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />
-                      Connect
+                      Neural Link
                     </Button>
                     <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50">
                       <Settings className="w-4 h-4" />
