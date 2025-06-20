@@ -85,28 +85,28 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
+      <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  AI Agents Platform
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
+                  NeuralForge
                 </h1>
-                <p className="text-gray-600 text-sm">Manage and interact with your AI assistants</p>
+                <p className="text-gray-400 text-sm">Advanced AI Agent Development Platform</p>
               </div>
             </div>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2 rounded-xl transition-all duration-200 hover:scale-105"
+              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-6 py-2 rounded-xl transition-all duration-200 hover:scale-105"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Agent
+              Deploy Agent
             </Button>
           </div>
         </div>
@@ -116,40 +116,40 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white/70 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Agents</p>
-                  <p className="text-3xl font-bold text-gray-900">{agents.length}</p>
+                  <p className="text-sm font-medium text-gray-400">Total Agents</p>
+                  <p className="text-3xl font-bold text-white">{agents.length}</p>
                 </div>
-                <Bot className="w-8 h-8 text-blue-600" />
+                <Bot className="w-8 h-8 text-purple-400" />
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/70 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Agents</p>
-                  <p className="text-3xl font-bold text-green-600">{agents.filter(a => a.isActive).length}</p>
+                  <p className="text-sm font-medium text-gray-400">Active Agents</p>
+                  <p className="text-3xl font-bold text-green-400">{agents.filter(a => a.isActive).length}</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/70 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Recent Chats</p>
-                  <p className="text-3xl font-bold text-indigo-600">12</p>
+                  <p className="text-sm font-medium text-gray-400">Neural Sessions</p>
+                  <p className="text-3xl font-bold text-violet-400">12</p>
                 </div>
-                <MessageCircle className="w-8 h-8 text-indigo-600" />
+                <MessageCircle className="w-8 h-8 text-violet-400" />
               </div>
             </CardContent>
           </Card>
@@ -157,64 +157,64 @@ const Index = () => {
 
         {/* Agents Grid */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Your AI Agents</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">Deployed AI Agents</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {agents.map((agent) => (
-              <Card key={agent.id} className="bg-white/70 backdrop-blur-sm border-white/20 hover:bg-white/80 hover:shadow-lg transition-all duration-200 hover:scale-105">
+              <Card key={agent.id} className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200 hover:scale-105">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="text-2xl">{agent.avatar}</div>
                       <div>
-                        <CardTitle className="text-lg text-gray-900">{agent.name}</CardTitle>
-                        <Badge variant="secondary" className="text-xs">
+                        <CardTitle className="text-lg text-white">{agent.name}</CardTitle>
+                        <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
                           {agent.type}
                         </Badge>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                      <span className="text-xs text-gray-500">{agent.isActive ? 'Active' : 'Inactive'}</span>
+                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
+                      <span className="text-xs text-gray-400">{agent.isActive ? 'Online' : 'Offline'}</span>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 mb-4">
+                  <CardDescription className="text-gray-300 mb-4">
                     {agent.description}
                   </CardDescription>
                   
                   <div className="mb-4">
-                    <p className="text-xs text-gray-500 mb-2">Capabilities:</p>
+                    <p className="text-xs text-gray-400 mb-2">Capabilities:</p>
                     <div className="flex flex-wrap gap-1">
                       {agent.capabilities.map((capability, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
                           {capability}
                         </Badge>
                       ))}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span>Last used: {agent.lastUsed}</span>
+                  <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                    <span>Last active: {agent.lastUsed}</span>
                   </div>
                   
                   <div className="flex space-x-2">
                     <Button 
                       onClick={() => handleChatWithAgent(agent)}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
                       size="sm"
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />
-                      Chat
+                      Connect
                     </Button>
-                    <Button variant="outline" size="sm" className="border-gray-300">
+                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50">
                       <Settings className="w-4 h-4" />
                     </Button>
                     <Button 
                       onClick={() => handleDeleteAgent(agent.id)}
                       variant="outline" 
                       size="sm" 
-                      className="border-red-200 text-red-600 hover:bg-red-50"
+                      className="border-red-500/30 text-red-400 hover:bg-red-900/50"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -227,15 +227,15 @@ const Index = () => {
 
         {agents.length === 0 && (
           <div className="text-center py-12">
-            <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No agents yet</h3>
-            <p className="text-gray-500 mb-6">Create your first AI agent to get started</p>
+            <Bot className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">No agents deployed</h3>
+            <p className="text-gray-500 mb-6">Deploy your first AI agent to begin neural processing</p>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Your First Agent
+              Deploy First Agent
             </Button>
           </div>
         )}

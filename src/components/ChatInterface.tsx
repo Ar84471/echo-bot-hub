@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: `Hello! I'm ${agent.name}. ${agent.description} How can I help you today?`,
+      text: `Neural connection established. I'm ${agent.name}. ${agent.description} How may I process your request?`,
       sender: 'agent',
       timestamp: new Date()
     }
@@ -68,12 +67,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     // Simulate AI response
     setTimeout(() => {
       const responses = [
-        "I understand your question. Let me help you with that.",
-        "That's an interesting point. Based on my capabilities, I can assist you by...",
-        "I can definitely help you with this task. Here's what I suggest...",
-        "Great question! Let me break this down for you step by step.",
-        "I'm here to help! Based on what you've asked, I recommend...",
-        "That's exactly the kind of task I'm designed to help with. Here's my approach..."
+        "Processing your request through neural pathways. Analyzing optimal solution vectors...",
+        "Neural networks activated. Cross-referencing data matrices for comprehensive response...",
+        "Engaging advanced cognitive algorithms. Synthesizing multi-dimensional analysis...",
+        "Quantum processing initiated. Generating optimal response framework...",
+        "Neural interface synchronized. Deploying specialized knowledge matrices...",
+        "Cognitive engines online. Processing through advanced neural architectures..."
       ];
 
       const agentResponse: Message = {
@@ -93,9 +92,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 p-4">
+      <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 p-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -103,24 +102,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="hover:bg-gray-100"
+                className="hover:bg-gray-800 text-gray-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                Disconnect
               </Button>
               
               <div className="flex items-center space-x-3">
                 <div className="text-2xl">{agent.avatar}</div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900">{agent.name}</h1>
+                  <h1 className="text-lg font-semibold text-white">{agent.name}</h1>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
                       {agent.type}
                     </Badge>
                     <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                      <span className="text-xs text-gray-500">
-                        {agent.isActive ? 'Online' : 'Offline'}
+                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
+                      <span className="text-xs text-gray-400">
+                        {agent.isActive ? 'Neural Link Active' : 'Offline'}
                       </span>
                     </div>
                   </div>
@@ -128,7 +127,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               </div>
             </div>
 
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </div>
@@ -146,11 +145,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               <div className={`flex space-x-3 max-w-[70%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                 <div className="flex-shrink-0">
                   {message.sender === 'agent' ? (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white text-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center text-white text-sm">
                       <Bot className="w-4 h-4" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-sm font-medium">
                       U
                     </div>
                   )}
@@ -158,12 +157,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 
                 <Card className={`p-4 ${
                   message.sender === 'user' 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
-                    : 'bg-white/70 backdrop-blur-sm border-white/20'
+                    ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white border-purple-500/20' 
+                    : 'bg-gray-800/70 backdrop-blur-sm border-purple-500/20 text-white'
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                   <p className={`text-xs mt-2 ${
-                    message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                    message.sender === 'user' ? 'text-purple-100' : 'text-gray-400'
                   }`}>
                     {formatTime(message.timestamp)}
                   </p>
@@ -175,14 +174,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex space-x-3 max-w-[70%]">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white text-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center text-white text-sm">
                   <Bot className="w-4 h-4" />
                 </div>
-                <Card className="p-4 bg-white/70 backdrop-blur-sm border-white/20">
+                <Card className="p-4 bg-gray-800/70 backdrop-blur-sm border-purple-500/20">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </Card>
               </div>
@@ -193,7 +192,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white/80 backdrop-blur-sm border-t border-white/20 p-4">
+      <div className="bg-black/90 backdrop-blur-sm border-t border-purple-500/20 p-4">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSendMessage} className="flex space-x-3">
@@ -201,15 +200,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={`Message ${agent.name}...`}
-                  className="pr-12 border-gray-300 bg-white"
+                  placeholder={`Transmit to ${agent.name}...`}
+                  className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
                   disabled={isTyping}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                 >
                   <Paperclip className="w-4 h-4" />
                 </Button>
@@ -217,22 +216,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               <Button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6"
+                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-6"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </form>
             
             <div className="flex items-center justify-center mt-3">
-              <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                <span>Capabilities:</span>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+                <span>Neural capabilities:</span>
                 {agent.capabilities.slice(0, 3).map((capability, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
                     {capability}
                   </Badge>
                 ))}
                 {agent.capabilities.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-300">
                     +{agent.capabilities.length - 3} more
                   </Badge>
                 )}

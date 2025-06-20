@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,14 +33,14 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
   const [newCapability, setNewCapability] = useState('');
 
   const agentTypes = [
-    'General Assistant',
-    'Developer Assistant',
-    'Creative Assistant',
-    'Business Assistant',
-    'Research Assistant',
-    'Customer Support',
+    'Neural Assistant',
+    'Code Architect',
+    'Creative Synthesizer',
     'Data Analyst',
-    'Content Creator'
+    'Research Engine',
+    'Support Vector',
+    'Logic Processor',
+    'Content Generator'
   ];
 
   const avatarOptions = ['🤖', '🧠', '💻', '✍️', '📊', '🎯', '🔍', '💡', '🎨', '📚'];
@@ -84,17 +83,17 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-gray-900 rounded-2xl shadow-2xl border border-purple-500/20 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-purple-500/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-900">Create New AI Agent</h2>
+              <h2 className="text-xl font-semibold text-white">Deploy New AI Agent</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-400 hover:text-white hover:bg-gray-800">
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -103,26 +102,26 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Agent Name</Label>
+              <Label htmlFor="name" className="text-gray-300">Agent Designation</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter agent name"
-                className="border-gray-300"
+                placeholder="Enter agent designation"
+                className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Agent Type</Label>
+              <Label htmlFor="type" className="text-gray-300">Agent Classification</Label>
               <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)} required>
-                <SelectTrigger className="border-gray-300">
+                <SelectTrigger className="border-purple-500/30 bg-gray-800 text-white">
                   <SelectValue placeholder="Select agent type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border-purple-500/30">
                   {agentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                    <SelectItem key={type} value={type} className="text-white hover:bg-gray-700">{type}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -130,27 +129,27 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-gray-300">Neural Configuration</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe what this agent specializes in..."
-              className="border-gray-300 min-h-[100px]"
+              placeholder="Define the agent's specialized neural pathways and capabilities..."
+              className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 min-h-[100px]"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Avatar</Label>
+            <Label className="text-gray-300">Avatar Interface</Label>
             <div className="flex flex-wrap gap-2">
               {avatarOptions.map((avatar) => (
                 <button
                   key={avatar}
                   type="button"
                   onClick={() => handleInputChange('avatar', avatar)}
-                  className={`w-12 h-12 rounded-lg border-2 text-xl hover:bg-gray-50 transition-colors ${
-                    formData.avatar === avatar ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                  className={`w-12 h-12 rounded-lg border-2 text-xl hover:bg-gray-800 transition-colors ${
+                    formData.avatar === avatar ? 'border-purple-500 bg-purple-900/50' : 'border-purple-500/30'
                   }`}
                 >
                   {avatar}
@@ -160,33 +159,34 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
           </div>
 
           <div className="space-y-3">
-            <Label>Capabilities</Label>
+            <Label className="text-gray-300">Neural Capabilities</Label>
             <div className="flex space-x-2">
               <Input
                 value={newCapability}
                 onChange={(e) => setNewCapability(e.target.value)}
-                placeholder="Add a capability"
-                className="border-gray-300"
+                placeholder="Add neural capability"
+                className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCapability(newCapability))}
               />
               <Button 
                 type="button" 
                 onClick={() => addCapability(newCapability)}
                 variant="outline"
+                className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50"
               >
                 Add
               </Button>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm text-gray-600">Suggested capabilities:</p>
+              <p className="text-sm text-gray-400">Suggested neural pathways:</p>
               <div className="flex flex-wrap gap-2">
                 {suggestedCapabilities.map((capability) => (
                   <button
                     key={capability}
                     type="button"
                     onClick={() => addCapability(capability)}
-                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    className="text-xs px-2 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 rounded-md transition-colors border border-purple-500/20"
                     disabled={capabilities.includes(capability)}
                   >
                     {capability}
@@ -197,15 +197,15 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
 
             {capabilities.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">Selected capabilities:</p>
+                <p className="text-sm font-medium text-gray-300">Active neural pathways:</p>
                 <div className="flex flex-wrap gap-2">
                   {capabilities.map((capability) => (
-                    <Badge key={capability} variant="secondary" className="cursor-pointer hover:bg-red-100">
+                    <Badge key={capability} variant="secondary" className="cursor-pointer hover:bg-red-900/50 bg-purple-900/50 text-purple-300">
                       {capability}
                       <button
                         type="button"
                         onClick={() => removeCapability(capability)}
-                        className="ml-1 text-red-500 hover:text-red-700"
+                        className="ml-1 text-red-400 hover:text-red-300"
                       >
                         ×
                       </button>
@@ -221,15 +221,15 @@ const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, on
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/50"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
             >
-              Create Agent
+              Deploy Agent
             </Button>
           </div>
         </form>
