@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,6 +36,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -49,6 +49,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   }, [messages]);
 
   useEffect(() => {
+    // Add entrance animation delay
+    const timer = setTimeout(() => setIsLoaded(true), 150);
+    
     // Load existing chat session or create initial greeting
     const existingSession = loadChatSession(agent.id);
     
@@ -77,6 +80,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
         lastUpdated: new Date()
       });
     }
+
+    return () => clearTimeout(timer);
   }, [agent]);
 
   const saveCurrentSession = (newMessages: Message[]) => {
@@ -163,7 +168,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col">
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col transition-all duration-500 ease-in-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       {/* Header */}
       <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 p-4">
         <div className="container mx-auto">
@@ -173,14 +178,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="hover:bg-gray-800 text-gray-300"
+                className="hover:bg-gray-800 text-gray-300 transition-all duration-200 hover:scale-105"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Disconnect
               </Button>
               
               <div className="flex items-center space-x-3">
-                <div className="text-2xl">{agent.avatar}</div>
+                <div className="text-2xl animate-pulse">{agent.avatar}</div>
                 <div>
                   <h1 className="text-lg font-semibold text-white">{agent.name}</h1>
                   <div className="flex items-center space-x-2">
@@ -188,7 +193,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                       {agent.type}
                     </Badge>
                     <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
                       <span className="text-xs text-gray-400">
                         {agent.isActive ? 'Neural Link Active' : 'Offline'}
                       </span>
@@ -203,11 +208,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleClearChat}
-                className="text-gray-400 hover:text-white hover:bg-gray-800"
+                className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200"
               >
                 Reset
               </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </div>
@@ -218,10 +223,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       {/* Chat Messages */}
       <div className="flex-1 container mx-auto p-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div
               key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex animate-fade-in ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className={`flex space-x-3 max-w-[70%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                 <div className="flex-shrink-0">
@@ -236,7 +242,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                   )}
                 </div>
                 
-                <Card className={`p-4 ${
+                <Card className={`p-4 transition-all duration-200 hover:scale-105 ${
                   message.sender === 'user' 
                     ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white border-purple-500/20' 
                     : 'bg-gray-800/70 backdrop-blur-sm border-purple-500/20 text-white'
@@ -253,7 +259,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
           ))}
 
           {isTyping && (
-            <div className="flex justify-start">
+            <div className="flex justify-start animate-fade-in">
               <div className="flex space-x-3 max-w-[70%]">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center text-white text-sm">
                   <Bot className="w-4 h-4" />
@@ -281,8 +287,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={`Transmit to ${agent.name}...`}
-                  className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
+                  placeholder={`Transmit to ${agent.name}... (try: 6*3, code help, write story)`}
+                  className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 transition-all duration-200 focus:ring-purple-500"
                   disabled={isTyping}
                   maxLength={500}
                 />
@@ -299,7 +305,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               <Button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
-                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-6"
+                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-6 transition-all duration-200 hover:scale-105"
               >
                 <Send className="w-4 h-4" />
               </Button>

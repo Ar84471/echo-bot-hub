@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, MessageCircle, Settings, Trash2, Bot, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ const Index = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,8 +64,10 @@ const Index = () => {
     }
   };
 
-  const handleChatWithAgent = (agent: Agent) => {
+  const handleChatWithAgent = async (agent: Agent) => {
+    setIsTransitioning(true);
     updateAgentLastUsed(agent.id);
+    
     // Update local state immediately
     setAgents(prevAgents => 
       prevAgents.map(a => 
@@ -74,27 +76,43 @@ const Index = () => {
           : a
       )
     );
+    
+    // Add a small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     setSelectedAgent(agent);
     setShowChat(true);
+    setIsTransitioning(false);
   };
 
-  const handleBackToDashboard = () => {
+  const handleBackToDashboard = async () => {
+    setIsTransitioning(true);
+    
+    // Add transition delay
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     setShowChat(false);
     setSelectedAgent(null);
+    setIsTransitioning(false);
+    
     // Reload agents to reflect any changes
     const updatedAgents = loadAgents();
     setAgents(updatedAgents);
   };
 
-  if (showChat && selectedAgent) {
-    return <ChatInterface agent={selectedAgent} onBack={handleBackToDashboard} />;
-  }
-
   const activeAgents = agents.filter(a => a.isActive).length;
   const totalSessions = agents.reduce((acc, agent) => acc + (agent.isActive ? 1 : 0), 0) * 3; // Simulate sessions
 
+  if (showChat && selectedAgent) {
+    return (
+      <div className={`transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <ChatInterface agent={selectedAgent} onBack={handleBackToDashboard} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900">
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
       {/* Header */}
       <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4">
@@ -124,8 +142,8 @@ const Index = () => {
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200 hover:scale-105">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -137,7 +155,7 @@ const Index = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200 hover:scale-105">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -151,7 +169,7 @@ const Index = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200">
+          <Card className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 transition-all duration-200 hover:scale-105">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -168,8 +186,12 @@ const Index = () => {
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-white mb-4">Deployed AI Agents</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agents.map((agent) => (
-              <Card key={agent.id} className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200 hover:scale-105">
+            {agents.map((agent, index) => (
+              <Card 
+                key={agent.id} 
+                className="bg-gray-800/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:scale-105 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
@@ -210,20 +232,21 @@ const Index = () => {
                   <div className="flex space-x-2">
                     <Button 
                       onClick={() => handleChatWithAgent(agent)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
                       size="sm"
+                      disabled={isTransitioning}
                     >
                       <MessageCircle className="w-4 h-4 mr-1" />
                       Neural Link
                     </Button>
-                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50">
+                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-all duration-200">
                       <Settings className="w-4 h-4" />
                     </Button>
                     <Button 
                       onClick={() => handleDeleteAgent(agent.id)}
                       variant="outline" 
                       size="sm" 
-                      className="border-red-500/30 text-red-400 hover:bg-red-900/50"
+                      className="border-red-500/30 text-red-400 hover:bg-red-900/50 transition-all duration-200"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -235,13 +258,13 @@ const Index = () => {
         </div>
 
         {agents.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <Bot className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-300 mb-2">No agents deployed</h3>
             <p className="text-gray-500 mb-6">Deploy your first AI agent to begin neural processing</p>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
+              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
             >
               <Plus className="w-4 h-4 mr-2" />
               Deploy First Agent
