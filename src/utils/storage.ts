@@ -40,37 +40,57 @@ export const loadAgents = (): Agent[] => {
     return JSON.parse(stored);
   }
   
-  // Return default agents if none exist
+  // Return specialized default agents
   return [
     {
       id: '1',
-      name: 'Neural Assistant Pro',
-      description: 'Advanced AI assistant specialized in general task processing and cognitive analysis',
-      type: 'Neural Assistant',
-      avatar: '🤖',
+      name: 'MathGenius Pro',
+      description: 'Advanced mathematical computation engine specialized in algebra, calculus, statistics, and complex problem solving',
+      type: 'Mathematics Specialist',
+      avatar: '🧮',
       isActive: true,
       lastUsed: '2 hours ago',
-      capabilities: ['Text Generation', 'Data Analysis', 'Problem Solving', 'Research']
+      capabilities: ['Mathematics', 'Calculations', 'Statistics', 'Algebra', 'Geometry']
     },
     {
       id: '2',
       name: 'Code Architect',
-      description: 'Elite programming AI with advanced code review and architecture design capabilities',
-      type: 'Code Architect',
+      description: 'Elite programming AI with expertise in multiple languages, architecture design, and code optimization',
+      type: 'Programming Specialist',
       avatar: '💻',
       isActive: true,
       lastUsed: '1 day ago',
-      capabilities: ['Code Review', 'Debugging', 'Architecture Design', 'Optimization']
+      capabilities: ['Code Review', 'Programming', 'Debugging', 'Architecture Design', 'Web Development']
     },
     {
       id: '3',
       name: 'Creative Synthesizer',
-      description: 'AI specialized in creative content generation and artistic collaboration',
-      type: 'Creative Synthesizer',
+      description: 'AI specialized in creative content generation, storytelling, and artistic collaboration',
+      type: 'Creative Specialist',
       avatar: '✍️',
-      isActive: false,
+      isActive: true,
       lastUsed: '3 days ago',
-      capabilities: ['Creative Writing', 'Content Creation', 'Storytelling', 'Brainstorming']
+      capabilities: ['Creative Writing', 'Storytelling', 'Content Creation', 'Poetry', 'Brainstorming']
+    },
+    {
+      id: '4',
+      name: 'Science Explorer',
+      description: 'Comprehensive science AI covering physics, chemistry, biology, and earth sciences with detailed explanations',
+      type: 'Science Specialist',
+      avatar: '🔬',
+      isActive: true,
+      lastUsed: '5 hours ago',
+      capabilities: ['Science', 'Physics', 'Chemistry', 'Biology', 'Research', 'Analysis']
+    },
+    {
+      id: '5',
+      name: 'Universal Assistant',
+      description: 'Versatile AI capable of handling any topic with comprehensive knowledge and adaptive responses',
+      type: 'General Assistant',
+      avatar: '🌟',
+      isActive: false,
+      lastUsed: '1 week ago',
+      capabilities: ['General Knowledge', 'Problem Solving', 'Research', 'Analysis', 'Communication']
     }
   ];
 };

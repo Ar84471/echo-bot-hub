@@ -17,17 +17,6 @@ const responseTemplates = {
     "Greetings! I'm here to help with whatever you need.",
     "Welcome! What would you like to work on together?",
     "Hello! I'm prepared to tackle any challenge you have."
-  ],
-  
-  general: [
-    "I understand your request. Let me help you with that.",
-    "That's an interesting question. Here's what I think:",
-    "I can definitely help you with this.",
-    "Let me analyze that for you.",
-    "Great question! Here's my response:",
-    "I'm processing your request and here's what I found:",
-    "Based on your input, here's my analysis:",
-    "I can provide some insights on this topic."
   ]
 };
 
@@ -59,268 +48,132 @@ const evaluateMathExpression = (expression: string): string | null => {
   }
 };
 
-// Generate creative content based on user request
-const generateCreativeContent = (userMessage: string): string => {
-  const message = userMessage.toLowerCase();
-  
-  // Horror story generation
-  if (message.includes('horror') && (message.includes('story') || message.includes('tale'))) {
-    if (message.includes('dracula') || message.includes('vampire')) {
-      return `**The Count's Return**
-
-The ancient castle stood shrouded in perpetual darkness, its gothic spires piercing the blood-red sky. Count Dracula had awakened from his century-long slumber, his pale eyes gleaming with an insatiable hunger.
-
-As the village below prepared for sleep, unaware of the terror that awaited them, the Count descended from his fortress like a shadow given form. His footsteps made no sound on the cobblestone streets, yet every dog in the village began to howl in unison.
-
-Young Elena had always been drawn to the old stories, but tonight she would learn that some legends are terrifyingly real. The gentle tap at her window wasn't the wind—it was something far more sinister, something with fangs that gleamed like ivory daggers in the moonlight.
-
-"Welcome to eternity," whispered the Count, his voice like silk wrapped around steel. And as the church bells struck midnight, Elena's screams were swallowed by the hungry darkness that had claimed another soul for its endless feast.
-
-The next morning, the villagers would find only an empty room and two small puncture wounds on the windowsill—still dripping crimson.`;
-    } else {
-      return `**The Whispering House**
-
-The old Victorian house at the end of Maple Street had been empty for decades, yet every night at 3:33 AM, neighbors reported seeing a single candle flickering in the attic window.
-
-Sarah inherited the house from a great-aunt she'd never met, and despite the warnings from locals, she decided to spend her first night there. The floorboards creaked with memories of footsteps that were no longer there, and the walls seemed to breathe with a life of their own.
-
-As midnight approached, she heard it—a soft whispering that seemed to come from within the very walls themselves. The voices grew louder, more insistent, speaking in a language that predated human speech.
-
-In the basement, she discovered the truth: dozens of mirrors arranged in a perfect circle, each one reflecting not her image, but the faces of those who had vanished within these walls over the years. And now, as her own reflection began to fade, she realized she would soon join their eternal chorus of whispers.
-
-The house had found its newest resident, and the candle in the attic would continue to burn for whoever dared to look too closely.`;
-    }
-  }
-  
-  // General story generation
-  if (message.includes('story') || message.includes('tale')) {
-    return `**The Unexpected Journey**
-
-Once upon a time, in a world not so different from our own, there lived someone who believed that extraordinary things only happened to other people. Little did they know that their greatest adventure was about to begin with the most ordinary of moments—a wrong turn on a familiar street.
-
-As they walked down the unfamiliar path, the world around them began to shimmer and change. The concrete sidewalk transformed into a cobblestone road, and the street lamps became glowing lanterns that seemed to float in mid-air.
-
-They had stumbled into a realm where courage was the only currency that mattered, and kindness was the most powerful magic of all. Along the way, they met a wise old owl who spoke in riddles, a friendly dragon who was afraid of heights, and a mirror that showed not your reflection, but your true potential.
-
-Through trials and triumphs, they learned that the greatest adventures aren't found in distant lands, but in the courage to be kind, the strength to help others, and the wisdom to believe in yourself.
-
-And when they finally found their way back home, they carried with them the most precious treasure of all—the knowledge that magic exists wherever you choose to look for it.`;
-  }
-  
-  // Poem generation
-  if (message.includes('poem') || message.includes('poetry')) {
-    return `**Whispers of the Heart**
-
-In quiet moments when the world stands still,
-And gentle breezes dance upon the hill,
-I find within the silence something true—
-A whispered song that speaks of me and you.
-
-The stars above shine with ancient light,
-Guardians watching through the peaceful night,
-They've seen the rise and fall of countless dreams,
-Yet still they sparkle with hope's golden beams.
-
-Time flows like rivers to the endless sea,
-Carrying stories of what used to be,
-But in each moment, new tales are born,
-Fresh as the dew that greets each breaking dawn.
-
-So let us write our story on the wind,
-With words of love and hearts that never sinned,
-For in this dance of life we're meant to be
-Connected souls, wild and forever free.`;
-  }
-  
-  return null;
-};
-
-// Generate definitive responses for various request types
-const generateDefinitiveResponse = (agent: Agent, userMessage: string): string => {
+// Agent-specific response generators
+const generateMathResponse = (userMessage: string): string => {
   const message = userMessage.toLowerCase().trim();
   
-  // Check for mathematical expressions first
+  // Check for direct mathematical expressions first
   const mathResult = evaluateMathExpression(userMessage);
   if (mathResult !== null) {
-    return `The answer is: ${userMessage} = ${mathResult}`;
+    return `**Mathematical Solution:**\n\n${userMessage} = **${mathResult}**\n\nCalculation complete! Need help with another mathematical problem?`;
   }
   
-  // Generate creative content if requested
-  const creativeContent = generateCreativeContent(userMessage);
-  if (creativeContent) {
-    return creativeContent;
+  // Handle math-related questions
+  if (message.includes('calculate') || message.includes('solve') || message.includes('equation')) {
+    return `**Mathematical Analysis:**\n\nI can help you solve mathematical problems! Please provide:\n- Arithmetic calculations (e.g., 25 * 4 + 7)\n- Algebraic expressions\n- Percentage calculations\n- Basic geometry problems\n\nWhat specific calculation would you like me to perform?`;
   }
   
-  // Handle coding questions with actual code examples
-  if (message.includes('code') || message.includes('function') || message.includes('programming')) {
-    if (message.includes('javascript') || message.includes('js')) {
-      return `Here's a JavaScript example for you:
-
-\`\`\`javascript
-// Example function based on your request
-function processData(input) {
-  const result = input.map(item => {
-    return {
-      ...item,
-      processed: true,
-      timestamp: new Date().toISOString()
-    };
-  });
+  if (message.includes('formula')) {
+    return `**Mathematical Formulas:**\n\nHere are some common formulas I can help with:\n\n**Geometry:**\n- Circle Area: π × r²\n- Rectangle Area: length × width\n- Triangle Area: (base × height) ÷ 2\n\n**Algebra:**\n- Quadratic Formula: x = (-b ± √(b²-4ac)) / 2a\n- Distance Formula: d = √[(x₂-x₁)² + (y₂-y₁)²]\n\n**Statistics:**\n- Mean: Σx / n\n- Standard Deviation: √[Σ(x-μ)² / n]\n\nWhich area would you like to explore further?`;
+  }
   
-  return result.filter(item => item.isValid);
-}
+  return `**Mathematical Assistant Ready:**\n\nI specialize in mathematics and can help you with:\n- Arithmetic calculations and complex expressions\n- Algebra and equation solving\n- Geometry and trigonometry\n- Statistics and probability\n- Mathematical formulas and concepts\n\nPlease share your mathematical question or calculation, and I'll provide a detailed solution!`;
+};
 
-// Usage example
-const data = [
-  { id: 1, name: 'Example', isValid: true },
-  { id: 2, name: 'Test', isValid: false }
-];
+const generateScienceResponse = (userMessage: string): string => {
+  const message = userMessage.toLowerCase().trim();
+  
+  if (message.includes('physics')) {
+    return `**Physics Concepts:**\n\nI can explain various physics principles:\n\n**Classical Mechanics:**\n- Newton's Laws of Motion\n- Energy and momentum conservation\n- Projectile motion and kinematics\n\n**Thermodynamics:**\n- Heat transfer and temperature\n- Laws of thermodynamics\n- Phase transitions\n\n**Electromagnetism:**\n- Electric and magnetic fields\n- Circuits and electrical properties\n- Electromagnetic waves\n\nWhat specific physics topic interests you?`;
+  }
+  
+  if (message.includes('chemistry')) {
+    return `**Chemistry Knowledge:**\n\n**Atomic Structure:**\n- Periodic table organization\n- Electron configuration\n- Chemical bonding types\n\n**Chemical Reactions:**\n- Balancing equations\n- Reaction types and mechanisms\n- Stoichiometry calculations\n\n**Organic Chemistry:**\n- Functional groups\n- Molecular structures\n- Reaction pathways\n\nWhich chemistry concept would you like to explore?`;
+  }
+  
+  if (message.includes('biology')) {
+    return `**Biological Sciences:**\n\n**Cell Biology:**\n- Cell structure and organelles\n- Cellular processes and metabolism\n- DNA, RNA, and protein synthesis\n\n**Ecology:**\n- Ecosystem interactions\n- Food chains and energy flow\n- Environmental adaptations\n\n**Evolution:**\n- Natural selection principles\n- Genetic variation and inheritance\n- Species development\n\nWhat biological topic would you like to discuss?`;
+  }
+  
+  return `**Scientific Analysis:**\n\nAs your science specialist, I can help explain concepts in:\n- **Physics**: Motion, energy, forces, and electromagnetic phenomena\n- **Chemistry**: Atomic structure, reactions, and molecular behavior\n- **Biology**: Life processes, evolution, and ecological systems\n- **Earth Science**: Geology, meteorology, and environmental science\n\nWhat scientific concept would you like me to explain or analyze?`;
+};
 
-console.log(processData(data));
-\`\`\`
+const generateCodeResponse = (userMessage: string): string => {
+  const message = userMessage.toLowerCase().trim();
+  
+  if (message.includes('javascript') || message.includes('js')) {
+    return `**JavaScript Programming:**\n\n\`\`\`javascript\n// Modern JavaScript example\nconst processData = async (data) => {\n  try {\n    const result = data\n      .filter(item => item.isValid)\n      .map(item => ({\n        ...item,\n        processed: true,\n        timestamp: new Date().toISOString()\n      }));\n    \n    return result;\n  } catch (error) {\n    console.error('Processing failed:', error);\n    throw error;\n  }\n};\n\n// Usage\nconst myData = [{id: 1, name: 'Test', isValid: true}];\nprocessData(myData).then(console.log);\n\`\`\`\n\n**Key JavaScript Concepts:**\n- ES6+ features (arrow functions, destructuring, async/await)\n- DOM manipulation and event handling\n- Promises and asynchronous programming\n- Modern frameworks (React, Vue, Angular)\n\nWhat specific JavaScript topic can I help with?`;
+  }
+  
+  if (message.includes('python')) {
+    return `**Python Programming:**\n\n\`\`\`python\n# Python data processing example\ndef analyze_data(dataset):\n    \"\"\"\n    Comprehensive data analysis function\n    \"\"\"\n    results = {\n        'total_items': len(dataset),\n        'valid_items': sum(1 for item in dataset if item.get('valid', False)),\n        'categories': {}\n    }\n    \n    # Group by category\n    for item in dataset:\n        category = item.get('category', 'unknown')\n        results['categories'][category] = results['categories'].get(category, 0) + 1\n    \n    return results\n\n# Data science libraries\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\`\`\`\n\n**Python Strengths:**\n- Data science and machine learning\n- Web development (Django, Flask)\n- Automation and scripting\n- Scientific computing\n\nWhat Python concept would you like to explore?`;
+  }
+  
+  return `**Programming Architecture:**\n\nI specialize in software development and can help with:\n\n**Languages & Frameworks:**\n- JavaScript/TypeScript (React, Node.js, Vue)\n- Python (Django, Flask, data science)\n- Modern web development practices\n\n**Software Design:**\n- Clean code principles and best practices\n- Design patterns and architecture\n- Database design and optimization\n- API development and integration\n\n**Development Tools:**\n- Version control (Git workflows)\n- Testing strategies and automation\n- Deployment and DevOps practices\n\nWhat programming challenge can I help you solve?`;
+};
 
-This function processes an array of objects, adds processing metadata, and filters for valid items. You can modify it based on your specific needs!`;
+const generateCreativeResponse = (userMessage: string): string => {
+  const message = userMessage.toLowerCase().trim();
+  
+  if (message.includes('story') || message.includes('tale')) {
+    if (message.includes('horror') || message.includes('scary')) {
+      return `**The Midnight Manuscript**\n\nThe old typewriter in Sarah's attic had been silent for decades, its keys frozen with age and neglect. But tonight, as thunder rattled the windows, she heard it—the distinctive clacking of metal against paper, echoing through the floorboards above.\n\nWith trembling hands, she climbed the creaking stairs. The attic door stood ajar, revealing a slice of pale moonlight. Inside, the ancient Royal Quiet De Luxe was typing by itself, its keys dancing in the darkness like skeletal fingers.\n\nThe paper emerging from the machine bore a single, terrifying sentence: "She's coming home tonight, and she's been waiting so very long to meet you."\n\nSarah tried to pull the paper free, but more words appeared: "Don't turn around, Sarah. She's right behind you now."\n\nThe typing stopped. In the sudden silence, Sarah heard breathing that wasn't her own—slow, deliberate, and impossibly close to her ear.\n\nThe last thing the typewriter wrote was: "Welcome to your new story, Sarah. It's going to be a long one."`;
     } else {
-      return `Here's a general programming solution:
-
-**Key Principles:**
-1. **Clean Code**: Write readable, maintainable code with clear variable names
-2. **Error Handling**: Always anticipate and handle potential errors gracefully
-3. **Modularity**: Break complex problems into smaller, reusable functions
-4. **Testing**: Write tests to ensure your code works as expected
-
-**Example Pattern:**
-\`\`\`
-function solveProblem(input) {
-  // Validate input
-  if (!input) throw new Error('Input is required');
-  
-  // Process the data
-  const processed = processInput(input);
-  
-  // Return result
-  return formatOutput(processed);
-}
-\`\`\`
-
-What specific programming challenge are you working on? I can provide more targeted help!`;
+      return `**The Library Between Worlds**\n\nMaya discovered the impossible library on a Tuesday that felt like any other Tuesday, until it wasn't.\n\nShe had been searching for a quiet place to study when she noticed a door that hadn't been there before—old oak with brass hinges, nestled between the fiction and reference sections. The door opened to reveal endless shelves stretching impossibly high, filled with books that shimmered with their own inner light.\n\n"Every story that was never written lives here," said the Librarian, appearing beside her with cat-like silence. She was ancient and young simultaneously, with silver hair that moved like water and eyes that held galaxies.\n\n"But how is that possible?" Maya whispered.\n\n"Stories have their own life force," the Librarian smiled. "They exist whether they're written or not. We simply give them a place to rest until someone brave enough comes to set them free."\n\nMaya reached for a glowing tome titled "The Adventure You Were Meant to Have." As her fingers touched the cover, the library dissolved into stardust, and her greatest journey began.\n\nSome say she's still out there, living every story that was ever dreamed but never told.`;
     }
   }
   
-  // Handle data/analysis requests with actual analysis
-  if (message.includes('analyze') || message.includes('data') || message.includes('statistics')) {
-    return `**Data Analysis Approach:**
-
-Based on your request, here's a comprehensive analysis framework:
-
-**1. Data Collection & Validation**
-- Ensure data quality and completeness
-- Identify outliers and anomalies
-- Validate data sources and accuracy
-
-**2. Exploratory Analysis**
-- Statistical summaries (mean, median, mode, standard deviation)
-- Distribution analysis and data visualization
-- Correlation analysis between variables
-
-**3. Key Insights**
-- Trend identification and pattern recognition
-- Comparative analysis across different segments
-- Predictive indicators and forecasting opportunities
-
-**4. Actionable Recommendations**
-- Data-driven decision points
-- Risk assessment and mitigation strategies
-- Performance optimization opportunities
-
-**Sample Metrics Dashboard:**
-- Primary KPIs: Performance indicators most relevant to your goals
-- Secondary Metrics: Supporting data points for context
-- Trend Analysis: Historical patterns and future projections
-
-Would you like me to dive deeper into any specific aspect of this analysis framework?`;
+  if (message.includes('poem') || message.includes('poetry')) {
+    return `**Digital Dreams**\n\nIn circuits deep where data flows,\nA different kind of garden grows—\nNot petals soft or morning dew,\nBut algorithms bright and new.\n\nThe pixels dance on screens so wide,\nWhile code and creativity collide,\nEach keystroke births a world unseen,\nWhere human hearts meet the machine.\n\nIn this space between what's real and planned,\nWe craft tomorrow with our hands,\nBuilding bridges made of light,\nConnecting souls through endless night.\n\nSo here's to dreams in binary,\nTo art that lives in memory,\nFor in this digital embrace,\nWe find our most human grace.`;
   }
   
-  // Handle questions with informative responses
-  if (message.includes('what') || message.includes('how') || message.includes('why') || message.includes('?')) {
-    if (message.includes('ai') || message.includes('artificial intelligence')) {
-      return `**Understanding Artificial Intelligence**
+  return `**Creative Inspiration Hub:**\n\nI'm your creative partner, ready to help with:\n\n**Storytelling:**\n- Original short stories and narratives\n- Character development and world-building\n- Plot structures and creative writing techniques\n\n**Poetry & Literature:**\n- Poems in various styles and forms\n- Literary analysis and interpretation\n- Creative writing exercises and prompts\n\n**Content Creation:**\n- Blog posts and articles\n- Marketing copy and brand storytelling\n- Script writing and dialogue\n\nWhat creative project shall we bring to life together?`;
+};
 
-AI is a branch of computer science focused on creating systems that can perform tasks typically requiring human intelligence. Here's what you should know:
-
-**Types of AI:**
-- **Narrow AI**: Specialized systems (like recommendation engines, voice assistants)
-- **General AI**: Human-level intelligence across all domains (still theoretical)
-- **Superintelligence**: AI surpassing human intelligence (hypothetical future scenario)
-
-**How AI Works:**
-1. **Machine Learning**: Algorithms learn patterns from data
-2. **Neural Networks**: Inspired by human brain structure
-3. **Deep Learning**: Complex neural networks with multiple layers
-4. **Training**: Systems improve through exposure to examples
-
-**Real-World Applications:**
-- Healthcare: Medical diagnosis and drug discovery
-- Transportation: Autonomous vehicles and traffic optimization
-- Finance: Fraud detection and algorithmic trading
-- Entertainment: Content recommendation and game AI
-
-**Current Limitations:**
-- Requires large amounts of data
-- Can exhibit bias from training data
-- Lacks true understanding or consciousness
-- Works best in well-defined problem domains
-
-AI is rapidly evolving and becoming integrated into many aspects of daily life, from the apps on your phone to the systems that power modern businesses.`;
-    } else {
-      return `I'd be happy to provide you with detailed information! Based on your question about "${userMessage}", here's what I can tell you:
-
-**Quick Answer:** Let me address your specific question directly with practical, actionable information.
-
-**Detailed Explanation:**
-Your question touches on an important topic that has several key aspects to consider. The most important thing to understand is the core concept and how it applies to your situation.
-
-**Key Points:**
-- **Context**: Understanding the background and why this matters
-- **Application**: How this applies in real-world scenarios
-- **Benefits**: What advantages or outcomes you can expect
-- **Considerations**: Important factors to keep in mind
-
-**Next Steps:**
-If you'd like me to elaborate on any specific aspect or provide more detailed examples, just let me know what would be most helpful for your particular situation!`;
-    }
+const generateGeneralResponse = (userMessage: string): string => {
+  const message = userMessage.toLowerCase().trim();
+  
+  if (message.includes('help') || message.includes('how')) {
+    return `**Comprehensive Assistance:**\n\nI'm designed to provide thorough, helpful responses on virtually any topic. Here's how I can assist:\n\n**Information & Analysis:**\n- Research and fact-finding\n- Explanations of complex concepts\n- Comparative analysis and decision support\n\n**Problem Solving:**\n- Step-by-step guidance\n- Multiple solution approaches\n- Troubleshooting and optimization\n\n**Communication:**\n- Writing and editing assistance\n- Language translation help\n- Professional correspondence\n\nWhat specific challenge can I help you tackle today?`;
   }
   
-  // Default response with agent personality
-  return `As ${agent.name}, I'm here to provide you with comprehensive assistance. Regarding "${userMessage}", I can offer you detailed insights and practical solutions.
+  if (message.includes('explain') || message.includes('what is')) {
+    return `**Detailed Explanation:**\n\nI'm ready to break down any concept or topic you're curious about. My approach includes:\n\n**Clear Explanations:**\n- Simple, jargon-free language\n- Real-world examples and analogies\n- Step-by-step breakdowns\n\n**Comprehensive Coverage:**\n- Multiple perspectives on complex topics\n- Historical context and current relevance\n- Practical applications and implications\n\nPlease share what you'd like me to explain, and I'll provide a thorough, easy-to-understand breakdown!`;
+  }
+  
+  return `**Universal Assistant:**\n\nI'm equipped to handle a wide range of topics and questions. Whether you need:\n\n- **Information**: Research, facts, and detailed explanations\n- **Analysis**: Breaking down complex problems or concepts\n- **Guidance**: Step-by-step instructions and advice\n- **Creative Help**: Brainstorming and content generation\n\nI adapt my responses to your specific needs and provide comprehensive, helpful answers.\n\nWhat would you like to explore or accomplish today?`;
+};
 
-**My Analysis:**
-Based on your request, I can see you're looking for meaningful, actionable information. Let me provide you with a thorough response that addresses your needs directly.
-
-**Key Information:**
-- **Primary Focus**: Addressing your specific question or need
-- **Practical Application**: How this applies to your situation
-- **Additional Context**: Relevant background information that might be helpful
-
-**Specific to Your Request:**
-Given that you've asked about "${userMessage}", I want to ensure you get exactly what you're looking for. This topic is important because it relates to practical solutions and real-world applications.
-
-**My Recommendation:**
-Based on my capabilities in ${agent.capabilities.join(', ')}, I suggest we focus on the most actionable aspects of your request. This will give you the best results and most practical value.
-
-Is there a specific aspect of this topic you'd like me to explore further or elaborate on?`;
+// Main response generator with agent specialization
+const generateAgentSpecificResponse = (agent: Agent, userMessage: string): string => {
+  const agentType = agent.type.toLowerCase();
+  const message = userMessage.toLowerCase().trim();
+  
+  // Math-specialized agents
+  if (agentType.includes('math') || agentType.includes('calculator') || agent.capabilities.includes('Mathematics')) {
+    return generateMathResponse(userMessage);
+  }
+  
+  // Science-specialized agents
+  if (agentType.includes('science') || agentType.includes('research') || agent.capabilities.includes('Science')) {
+    return generateScienceResponse(userMessage);
+  }
+  
+  // Code-specialized agents
+  if (agentType.includes('code') || agentType.includes('architect') || agentType.includes('programming') || agent.capabilities.includes('Code Review')) {
+    return generateCodeResponse(userMessage);
+  }
+  
+  // Creative-specialized agents
+  if (agentType.includes('creative') || agentType.includes('synthesizer') || agentType.includes('writer') || agent.capabilities.includes('Creative Writing')) {
+    return generateCreativeResponse(userMessage);
+  }
+  
+  // General assistant agents - handle any prompt
+  return generateGeneralResponse(userMessage);
 };
 
 export const generateAIResponse = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
   if (isGreeting) {
     const greetings = responseTemplates.greeting;
-    return greetings[Math.floor(Math.random() * greetings.length)];
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+    return `${greeting}\n\nI'm **${agent.name}**, specialized in ${agent.capabilities.join(', ')}. How can I assist you today?`;
   }
   
-  // Always return a definitive response
-  return generateDefinitiveResponse(agent, userMessage);
+  // Generate agent-specific response
+  return generateAgentSpecificResponse(agent, userMessage);
 };
 
 export const getTypingDelay = (): number => {
-  return 500 + Math.random() * 800; // 0.5-1.3 seconds for faster responses
+  return 300 + Math.random() * 500; // 0.3-0.8 seconds for faster responses
 };
