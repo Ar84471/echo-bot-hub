@@ -1,4 +1,3 @@
-
 interface Agent {
   id: string;
   name: string;
@@ -120,6 +119,40 @@ const generateCreativeResponse = (userMessage: string): string => {
   return `**Creative Inspiration Hub:**\n\nI'm your creative partner, ready to help with:\n\n**Storytelling:**\n- Original short stories and narratives\n- Character development and world-building\n- Plot structures and creative writing techniques\n\n**Poetry & Literature:**\n- Poems in various styles and forms\n- Literary analysis and interpretation\n- Creative writing exercises and prompts\n\n**Content Creation:**\n- Blog posts and articles\n- Marketing copy and brand storytelling\n- Script writing and dialogue\n\nWhat creative project shall we bring to life together?`;
 };
 
+const generateQuranResponse = (userMessage: string): string => {
+  const message = userMessage.toLowerCase().trim();
+  
+  // Check if user provided a specific verse reference
+  if (message.includes(':') && (message.includes('surah') || message.includes('chapter') || /\d+:\d+/.test(message))) {
+    const verseMatch = message.match(/(\d+):(\d+)/);
+    if (verseMatch) {
+      const [, surah, ayah] = verseMatch;
+      return `**Quranic Analysis: Surah ${surah}, Ayah ${ayah}**\n\n**Arabic Text:**\n*[Arabic text would be displayed here]*\n\n**Transliteration:**\n*[Phonetic pronunciation would be provided]*\n\n**English Translation:**\n*[Multiple scholarly translations would be shown]*\n\n**Word-by-Word Breakdown:**\n• **Word 1** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n• **Word 2** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n• **Word 3** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n\n**Grammatical Analysis:**\n- Sentence structure and Arabic grammar points\n- Rhetorical devices used\n- Literary features\n\n**Classical Commentary (Tafsir):**\n- Ibn Kathir's interpretation\n- Al-Tabari's commentary\n- Modern scholarly insights\n\n**Historical Context:**\n- Circumstances of revelation (Asbab al-Nuzul)\n- Historical background\n- Relevance to the Meccan/Medinan period\n\n**Thematic Connections:**\n- Related verses in the Quran\n- Cross-references to similar themes\n- Jurisprudential implications\n\n**Sources:** Classical tafsir works, Arabic lexicons, and contemporary Islamic scholarship\n\nPlease provide the specific verse reference for detailed analysis!`;
+    }
+  }
+  
+  // Handle specific topics
+  if (message.includes('translation') || message.includes('translate')) {
+    return `**Quranic Translation Methods:**\n\n**Recommended Translations:**\n• **Sahih International** - Clear, modern English\n• **Muhammad Asad** - Scholarly with extensive notes\n• **Abdul Haleem** - Oxford academic translation\n• **Pickthall** - Classical English style\n• **Yusuf Ali** - Traditional with commentary\n\n**Translation Principles:**\n- Literal vs. interpretive approaches\n- Preserving Arabic rhetorical beauty\n- Cultural and historical context\n- Linguistic nuances in Arabic\n\n**Why Multiple Translations?**\nThe Quran's Arabic contains layers of meaning that no single translation can fully capture. Comparing multiple translations provides a more complete understanding.\n\nPlease share a specific verse (e.g., \"2:255\" or \"Surah Al-Fatiha\") for detailed translation analysis!`;
+  }
+  
+  if (message.includes('arabic') || message.includes('grammar') || message.includes('linguistic')) {
+    return `**Arabic Language & Quranic Linguistics:**\n\n**Quranic Arabic Features:**\n• **Classical Arabic** - The purest form of the language\n• **Rhetorical Excellence** - Unmatched literary style\n• **Grammatical Precision** - Every word placed with purpose\n• **Semantic Richness** - Multiple layers of meaning\n\n**Key Linguistic Elements:**\n- **Root System**: 3-letter roots forming word families\n- **Morphology**: How word forms change meaning\n- **Syntax**: Word order and sentence structure\n- **Rhetoric**: Metaphors, alliteration, rhythm\n\n**Grammatical Analysis Tools:**\n- Parsing (I'rab) of individual words\n- Morphological analysis\n- Syntactic relationships\n- Semantic field analysis\n\n**Famous Arabic Grammarians:**\n- Sibawayh (8th century)\n- Al-Khalil ibn Ahmad\n- Ibn Malik\n\nShare a verse and I'll provide detailed Arabic linguistic analysis!`;
+  }
+  
+  if (message.includes('tafsir') || message.includes('commentary') || message.includes('interpretation')) {
+    return `**Quranic Commentary (Tafsir) Traditions:**\n\n**Classical Tafsir Works:**\n• **Tafsir Ibn Kathir** - Historical and linguistic focus\n• **Tafsir al-Tabari** - Comprehensive early commentary\n• **Tafsir al-Qurtubi** - Jurisprudential emphasis\n• **Tafsir al-Razi** - Theological and philosophical\n\n**Modern Tafsir:**\n• **Fi Zilal al-Quran** (Sayyid Qutb) - Contemporary themes\n• **Tafhim al-Quran** (Maududi) - Practical application\n• **Al-Mizan** (Tabataba'i) - Quranic exegesis by Quran\n\n**Types of Tafsir:**\n- **Tafsir bil-Ma'thur**: Based on Prophetic traditions\n- **Tafsir bil-Ra'y**: Based on scholarly reasoning\n- **Tafsir Lughawi**: Linguistic commentary\n- **Tafsir Fiqhi**: Jurisprudential interpretation\n\n**Methodology:**\n1. Quran explains Quran\n2. Prophetic traditions (Hadith)\n3. Companions' explanations\n4. Arabic language rules\n5. Historical context\n\nWhich verse would you like me to provide tafsir analysis for?`;
+  }
+  
+  // Handle requests for specific surahs
+  if (message.includes('fatiha') || message.includes('opening')) {
+    return `**Surah Al-Fatiha (The Opening) - Complete Analysis:**\n\n**Arabic Text & Transliteration:**\n*Bismillahi-r-Rahmani-r-Raheem*\n*Al-hamdu lillahi Rabbi-l-'alameen*\n*Ar-Rahmani-r-Raheem*\n*Maliki yawmi-d-deen*\n*Iyyaka na'budu wa iyyaka nasta'een*\n*Ihdina-s-sirata-l-mustaqeem*\n*Sirata-l-ladhina an'amta 'alayhim ghayri-l-maghdubi 'alayhim wa la-d-dalleen*\n\n**Translation:**\nIn the name of Allah, the Most Gracious, the Most Merciful.\nPraise be to Allah, Lord of the worlds.\nThe Most Gracious, the Most Merciful.\nMaster of the Day of Judgment.\nYou alone we worship, and You alone we ask for help.\nGuide us to the straight path.\nThe path of those You have blessed, not of those who have incurred Your wrath, nor of those who have gone astray.\n\n**Key Themes:**\n- **Praise & Gratitude** to Allah\n- **Divine Attributes** (Rahman, Raheem)\n- **Day of Judgment** acknowledgment\n- **Exclusive Worship** (Tawheed)\n- **Seeking Guidance** on the right path\n\n**Significance:**\n- Recited in every prayer\n- Contains essence of entire Quran\n- Called \"Umm al-Kitab\" (Mother of the Book)\n\nWould you like detailed word-by-word analysis of any specific verse?`;
+  }
+  
+  // Default response for general Quranic queries
+  return `**Assalamu Alaikum! Welcome to Quranic Analysis**\n\n**I specialize in comprehensive Quranic studies including:**\n\n**📖 Verse Analysis:**\n- Word-by-word Arabic breakdown\n- Multiple scholarly translations\n- Grammatical and linguistic analysis\n- Root word etymology\n\n**📚 Commentary & Context:**\n- Classical tafsir (Ibn Kathir, Tabari, etc.)\n- Historical context (Asbab al-Nuzul)\n- Thematic connections\n- Jurisprudential implications\n\n**🔤 Arabic Language:**\n- Transliteration and pronunciation\n- Grammar and morphology\n- Rhetorical devices\n- Literary excellence\n\n**🌟 How to Use:**\n- Share a verse reference (e.g., \"2:255\", \"Ayat al-Kursi\")\n- Ask about specific topics (\"What does Bismillah mean?\")\n- Request translations or tafsir analysis\n- Inquire about Arabic grammar points\n\n**Example queries:**\n• \"Analyze Surah Al-Fatiha verse by verse\"\n• \"Explain the word-by-word meaning of 2:255\"\n• \"What is the tafsir of Ayat al-Kursi?\"\n• \"Break down the Arabic grammar in 1:1\"\n\nPlease share the verse or topic you'd like me to analyze in detail!`;
+};
+
 const generateGeneralResponse = (userMessage: string): string => {
   const message = userMessage.toLowerCase().trim();
   
@@ -157,6 +190,11 @@ const generateAgentSpecificResponse = (agent: Agent, userMessage: string): strin
   // Creative-specialized agents
   if (agentType.includes('creative') || agentType.includes('synthesizer') || agentType.includes('writer') || agent.capabilities.includes('Creative Writing')) {
     return generateCreativeResponse(userMessage);
+  }
+  
+  // Quran Bot - Islamic Studies specialist
+  if (agentType.includes('islamic') || agentType.includes('quran') || agent.capabilities.includes('Quranic Analysis')) {
+    return generateQuranResponse(userMessage);
   }
   
   // General assistant agents - handle any prompt
