@@ -115,13 +115,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     try {
       // Simulate AI processing delay
       const delay = getTypingDelay();
+      
+      // Generate response immediately but show it after delay
+      const aiResponseText = generateAIResponse(agent, userMessage.text);
+      
       await new Promise(resolve => setTimeout(resolve, delay));
 
-      const aiResponse = generateAIResponse(agent, userMessage.text);
-      
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: aiResponse,
+        text: aiResponseText,
         sender: 'agent',
         timestamp: new Date(),
         agentId: agent.id
@@ -137,9 +139,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     } catch (error) {
       console.error('Error generating AI response:', error);
       setIsTyping(false);
+      
+      // Provide fallback response
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+        sender: 'agent',
+        timestamp: new Date(),
+        agentId: agent.id
+      };
+      
+      const finalMessages = [...newMessages, fallbackMessage];
+      setMessages(finalMessages);
+      saveCurrentSession(finalMessages);
+      
       toast({
-        title: "Neural Connection Error",
-        description: "Unable to process request. Please try again.",
+        title: "Connection Issue",
+        description: "There was a problem generating the response. Please try again.",
         variant: "destructive",
       });
     }
@@ -162,8 +178,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     saveCurrentSession([greetingMessage]);
     
     toast({
-      title: "Neural Session Reset",
-      description: "Chat history has been cleared and neural pathways reinitialized.",
+      title: "Chat Cleared",
+      description: "Conversation history has been reset.",
     });
   };
 
@@ -181,7 +197,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 className="hover:bg-gray-800 text-gray-300 transition-all duration-200 hover:scale-105"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Disconnect
+                Back
               </Button>
               
               <div className="flex items-center space-x-3">
@@ -195,7 +211,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                     <div className="flex items-center space-x-1">
                       <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
                       <span className="text-xs text-gray-400">
-                        {agent.isActive ? 'Neural Link Active' : 'Offline'}
+                        {agent.isActive ? 'Online' : 'Offline'}
                       </span>
                     </div>
                   </div>
@@ -210,7 +226,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 onClick={handleClearChat}
                 className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200"
               >
-                Reset
+                Clear
               </Button>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200">
                 <MoreVertical className="w-4 h-4" />
@@ -287,7 +303,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={`Transmit to ${agent.name}... (try: 6*3, code help, write story)`}
+                  placeholder={`Message ${agent.name}... (try: 2+2, help with code, tell me a story)`}
                   className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 transition-all duration-200 focus:ring-purple-500"
                   disabled={isTyping}
                   maxLength={500}
@@ -313,7 +329,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
             
             <div className="flex items-center justify-center mt-3">
               <div className="flex flex-wrap gap-2 text-xs text-gray-400">
-                <span>Neural capabilities:</span>
+                <span>Capabilities:</span>
                 {agent.capabilities.slice(0, 3).map((capability, index) => (
                   <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
                     {capability}
