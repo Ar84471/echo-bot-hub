@@ -89,13 +89,13 @@ export const loadAgents = (): Agent[] => {
     },
     {
       id: '3',
-      name: 'Creative Synthesizer',
-      description: 'AI specialized in creative content generation, storytelling, and artistic collaboration',
-      type: 'Creative Specialist',
-      avatar: '✍️',
+      name: 'Quran Bot',
+      description: 'Specialized Islamic studies AI for Quranic verse analysis, Arabic linguistics, translations, and scholarly commentary',
+      type: 'Islamic Studies Specialist',
+      avatar: '📖',
       isActive: true,
-      lastUsed: '3 days ago',
-      capabilities: ['Creative Writing', 'Storytelling', 'Content Creation', 'Poetry', 'Brainstorming']
+      lastUsed: '30 minutes ago',
+      capabilities: ['Quranic Analysis', 'Arabic Language', 'Islamic Studies', 'Translation', 'Tafsir', 'Etymology']
     },
     {
       id: '4',
@@ -109,16 +109,6 @@ export const loadAgents = (): Agent[] => {
     },
     {
       id: '5',
-      name: 'Quran Bot',
-      description: 'Specialized Islamic studies AI for Quranic verse analysis, Arabic linguistics, translations, and scholarly commentary',
-      type: 'Islamic Studies Specialist',
-      avatar: '📖',
-      isActive: true,
-      lastUsed: '30 minutes ago',
-      capabilities: ['Quranic Analysis', 'Arabic Language', 'Islamic Studies', 'Translation', 'Tafsir', 'Etymology']
-    },
-    {
-      id: '6',
       name: 'Universal Assistant',
       description: 'Versatile AI capable of handling any topic with comprehensive knowledge and adaptive responses',
       type: 'General Assistant',
