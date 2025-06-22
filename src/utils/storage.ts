@@ -1,4 +1,3 @@
-
 interface Agent {
   id: string;
   name: string;
@@ -30,14 +29,40 @@ export const StorageKeys = {
   ACTIVE_SESSIONS: 'neuralforge_active_sessions'
 };
 
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.warn('LocalStorage access failed:', error);
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.warn('LocalStorage write failed:', error);
+    }
+  }
+};
+
 export const saveAgents = (agents: Agent[]) => {
-  localStorage.setItem(StorageKeys.AGENTS, JSON.stringify(agents));
+  safeLocalStorage.setItem(StorageKeys.AGENTS, JSON.stringify(agents));
 };
 
 export const loadAgents = (): Agent[] => {
-  const stored = localStorage.getItem(StorageKeys.AGENTS);
+  const stored = safeLocalStorage.getItem(StorageKeys.AGENTS);
   if (stored) {
-    return JSON.parse(stored);
+    try {
+      return JSON.parse(stored);
+    } catch (error) {
+      console.warn('Failed to parse stored agents:', error);
+    }
   }
   
   // Return specialized default agents
@@ -115,12 +140,19 @@ export const saveChatSession = (session: ChatSession) => {
     sessions.push(session);
   }
   
-  localStorage.setItem(StorageKeys.CHAT_SESSIONS, JSON.stringify(sessions));
+  safeLocalStorage.setItem(StorageKeys.CHAT_SESSIONS, JSON.stringify(sessions));
 };
 
 export const loadChatSessions = (): ChatSession[] => {
-  const stored = localStorage.getItem(StorageKeys.CHAT_SESSIONS);
-  return stored ? JSON.parse(stored) : [];
+  const stored = safeLocalStorage.getItem(StorageKeys.CHAT_SESSIONS);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (error) {
+      console.warn('Failed to parse stored chat sessions:', error);
+    }
+  }
+  return [];
 };
 
 export const loadChatSession = (agentId: string): ChatSession | null => {
@@ -136,4 +168,12 @@ export const updateAgentLastUsed = (agentId: string) => {
     agent.isActive = true;
     saveAgents(agents);
   }
+};
+
+export const getMobileInfo = () => {
+  return {
+    isMobile: isMobile(),
+    platform: navigator.platform,
+    userAgent: navigator.userAgent
+  };
 };
