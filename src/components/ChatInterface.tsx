@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Paperclip, MoreVertical, Bot, Mic, MicOff, Volume2, VolumeX, Search, Download } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, Bot, Mic, MicOff, Search, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { saveChatSession, loadChatSession } from '@/utils/storage';
 import { generateAIResponse, getTypingDelay } from '@/utils/aiResponses';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { searchWeb, generateEnhancedResponse } from '@/utils/informationRetrieval';
 
 interface Agent {
@@ -96,8 +95,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   };
 
   const [isSearching, setIsSearching] = useState(false);
-  const [useWebSearch, setUseWebSearch] = useState(false);
-  const [autoTTS, setAutoTTS] = useState(false);
+  const [useWebSearch, setUseWebSearch] = useState(true); // Default to true for web search
   
   const {
     isRecording,
@@ -107,17 +105,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     duration,
     error: recordingError
   } = useAudioRecording();
-  
-  const {
-    speak,
-    stop: stopSpeaking,
-    isSpeaking,
-    selectedVoice,
-    setSelectedVoice,
-    voices,
-    rate,
-    setRate
-  } = useTextToSpeech();
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,18 +129,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     try {
       let aiResponseText: string;
       
-      // Search web if enabled
-      if (useWebSearch) {
-        setIsSearching(true);
-        const searchResults = await searchWeb(userMessage.text);
-        setIsSearching(false);
-        aiResponseText = await generateEnhancedResponse(userMessage.text, agent, searchResults);
-      } else {
-        // Simulate AI processing delay
-        const delay = getTypingDelay();
-        await new Promise(resolve => setTimeout(resolve, delay));
-        aiResponseText = generateAIResponse(agent, userMessage.text);
-      }
+      // Always search web for real information
+      setIsSearching(true);
+      const searchResults = await searchWeb(userMessage.text);
+      setIsSearching(false);
+      aiResponseText = await generateEnhancedResponse(userMessage.text, agent, searchResults);
 
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -170,11 +150,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       // Save complete conversation
       saveCurrentSession(finalMessages);
       
-      // Auto TTS if enabled
-      if (autoTTS) {
-        speak(aiResponseText);
-      }
-      
     } catch (error) {
       console.error('Error generating AI response:', error);
       setIsTyping(false);
@@ -183,7 +158,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       // Provide fallback response
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+        text: "I apologize, but I'm having trouble processing your request right now. Please try again with a different question or check your internet connection.",
         sender: 'agent',
         timestamp: new Date(),
         agentId: agent.id
@@ -287,7 +262,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                     <div className="flex items-center space-x-1">
                       <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
                       <span className="text-xs text-gray-400">
-                        {agent.isActive ? 'Online' : 'Offline'}
+                        {agent.isActive ? 'Web Search Enabled' : 'Offline'}
                       </span>
                     </div>
                   </div>
@@ -306,28 +281,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               >
                 <Search className="w-4 h-4" />
               </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAutoTTS(!autoTTS)}
-                className={`transition-all duration-200 ${autoTTS ? 'text-green-400 bg-green-900/30' : 'text-gray-400 hover:text-white'}`}
-                title="Toggle auto text-to-speech"
-              >
-                {autoTTS ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              </Button>
-              
-              {isSpeaking && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={stopSpeaking}
-                  className="text-red-400 hover:text-red-300 animate-pulse"
-                  title="Stop speaking"
-                >
-                  <VolumeX className="w-4 h-4" />
-                </Button>
-              )}
               
               <Button 
                 variant="ghost" 
@@ -384,17 +337,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 }`}>
                   <div className="flex items-start justify-between">
                     <p className="text-sm whitespace-pre-wrap flex-1">{message.text}</p>
-                    {message.sender === 'agent' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => speak(message.text)}
-                        className="ml-2 opacity-60 hover:opacity-100 transition-opacity"
-                        title="Read aloud"
-                      >
-                        <Volume2 className="w-3 h-3" />
-                      </Button>
-                    )}
                   </div>
                   <p className={`text-xs mt-2 ${
                     message.sender === 'user' ? 'text-purple-100' : 'text-gray-400'
@@ -420,7 +362,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                       <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                     <span className="text-xs text-gray-400">
-                      {isSearching ? 'Searching web...' : 'Thinking...'}
+                      {isSearching ? 'Searching the web...' : 'Analyzing information...'}
                     </span>
                   </div>
                 </Card>
@@ -454,7 +396,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={`Message ${agent.name}... (try: 2+2, help with code, tell me a story)`}
+                  placeholder={`Ask ${agent.name} anything... (Web search enabled for real-time information)`}
                   className="pr-20 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 transition-all duration-200 focus:ring-purple-500"
                   disabled={isTyping || isRecording}
                   maxLength={500}
@@ -493,11 +435,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
             <div className="flex items-center justify-center mt-3">
               <div className="flex flex-wrap gap-2 text-xs text-gray-400">
                 <span>Features:</span>
-                <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-300">
-                  {useWebSearch ? 'Web Search ON' : 'Web Search OFF'}
-                </Badge>
-                <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-300">
-                  {autoTTS ? 'Auto TTS ON' : 'Auto TTS OFF'}
+                <Badge variant="outline" className="text-xs border-green-500/30 text-green-300">
+                  Web Search ACTIVE
                 </Badge>
                 <span>|</span>
                 <span>Capabilities:</span>

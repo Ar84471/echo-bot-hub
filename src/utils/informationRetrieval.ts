@@ -12,38 +12,85 @@ interface WebSearchResponse {
   timestamp: Date;
 }
 
-// Mock implementation of web search - in a real app, you'd integrate with a search API
+// Enhanced web search using DuckDuckGo Instant Answer API
 export const searchWeb = async (query: string): Promise<WebSearchResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-  
-  // Mock search results based on query
-  const mockResults: SearchResult[] = [
-    {
-      title: `${query} - Latest Information`,
-      snippet: `Recent information about ${query}. This is a comprehensive overview of the current state and developments related to your query.`,
-      url: `https://example.com/search/${encodeURIComponent(query)}`,
-      source: "Academic Source"
-    },
-    {
-      title: `Understanding ${query}`,
-      snippet: `Detailed analysis and explanation of ${query} with expert insights and up-to-date information from reliable sources.`,
-      url: `https://research.com/${encodeURIComponent(query)}`,
-      source: "Research Database"
-    },
-    {
-      title: `${query} - Current Trends`,
-      snippet: `Current trends and developments in ${query}. Stay updated with the latest news and information.`,
-      url: `https://news.com/${encodeURIComponent(query)}`,
-      source: "News Source"
+  try {
+    // Use DuckDuckGo Instant Answer API for real search results
+    const encodedQuery = encodeURIComponent(query);
+    const response = await fetch(`https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`);
+    
+    if (!response.ok) {
+      throw new Error('Search API request failed');
     }
-  ];
-
-  return {
-    results: mockResults,
-    query,
-    timestamp: new Date()
-  };
+    
+    const data = await response.json();
+    
+    const results: SearchResult[] = [];
+    
+    // Process instant answer
+    if (data.Abstract) {
+      results.push({
+        title: data.Heading || query,
+        snippet: data.Abstract,
+        url: data.AbstractURL || '#',
+        source: data.AbstractSource || 'DuckDuckGo'
+      });
+    }
+    
+    // Process related topics
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+      data.RelatedTopics.slice(0, 3).forEach((topic: any) => {
+        if (topic.Text) {
+          results.push({
+            title: topic.Text.split(' - ')[0] || 'Related Information',
+            snippet: topic.Text,
+            url: topic.FirstURL || '#',
+            source: 'DuckDuckGo'
+          });
+        }
+      });
+    }
+    
+    // If no results from DuckDuckGo, try alternative approach
+    if (results.length === 0) {
+      // Fallback to Wikipedia API for educational content
+      try {
+        const wikiResponse = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodedQuery}`);
+        if (wikiResponse.ok) {
+          const wikiData = await wikiResponse.json();
+          results.push({
+            title: wikiData.title,
+            snippet: wikiData.extract,
+            url: wikiData.content_urls?.desktop?.page || '#',
+            source: 'Wikipedia'
+          });
+        }
+      } catch (wikiError) {
+        console.log('Wikipedia fallback failed:', wikiError);
+      }
+    }
+    
+    return {
+      results,
+      query,
+      timestamp: new Date()
+    };
+    
+  } catch (error) {
+    console.error('Web search error:', error);
+    
+    // Return a more helpful fallback response
+    return {
+      results: [{
+        title: `Information about ${query}`,
+        snippet: `I'm currently unable to search the web for real-time information about "${query}". This could be due to network restrictions or API limitations. Please try rephrasing your question or ask for general knowledge on this topic.`,
+        url: '#',
+        source: 'System Message'
+      }],
+      query,
+      timestamp: new Date()
+    };
+  }
 };
 
 export const generateEnhancedResponse = async (
@@ -51,28 +98,42 @@ export const generateEnhancedResponse = async (
   agent: any, 
   searchResults?: WebSearchResponse
 ): Promise<string> => {
-  // Enhanced AI response generation with web context
-  let baseResponse = `As ${agent.name}, I understand you're asking about "${userMessage}".`;
+  let enhancedResponse = '';
   
   if (searchResults && searchResults.results.length > 0) {
-    baseResponse += `\n\nBased on current information sources:\n`;
+    enhancedResponse += `**Information found about "${userMessage}":**\n\n`;
+    
     searchResults.results.forEach((result, index) => {
-      baseResponse += `\n${index + 1}. **${result.title}**\n   ${result.snippet}\n   Source: ${result.source}`;
+      enhancedResponse += `**${index + 1}. ${result.title}**\n`;
+      enhancedResponse += `${result.snippet}\n`;
+      if (result.url !== '#') {
+        enhancedResponse += `Source: [${result.source}](${result.url})\n`;
+      } else {
+        enhancedResponse += `Source: ${result.source}\n`;
+      }
+      enhancedResponse += '\n';
     });
     
-    baseResponse += `\n\nIntegrating this information with my specialized knowledge in ${agent.type.toLowerCase()}...`;
-  }
-
-  // Add agent-specific response based on type
-  if (agent.type === 'Islamic Studies Specialist') {
-    baseResponse += `\n\nFrom an Islamic studies perspective, I can provide detailed analysis of Quranic verses, hadith references, and scholarly commentary on this topic. Would you like me to explore specific aspects of Islamic jurisprudence or theology related to your question?`;
-  } else if (agent.type === 'Code Assistant') {
-    baseResponse += `\n\nAs a coding specialist, I can help you with implementation details, best practices, debugging strategies, and provide code examples. Would you like me to demonstrate any specific programming concepts or solutions?`;
-  } else if (agent.type === 'Research Assistant') {
-    baseResponse += `\n\nI can help you dive deeper into this research topic with academic rigor, providing citations, methodology suggestions, and comprehensive analysis. What specific aspect would you like to explore further?`;
+    enhancedResponse += `**Analysis as ${agent.name}:**\n`;
+    
+    // Agent-specific analysis based on type
+    if (agent.type === 'Islamic Studies Specialist') {
+      enhancedResponse += `From an Islamic perspective, I can provide additional context and scholarly commentary on this topic. The information above should be verified against authentic Islamic sources like the Quran and Sunnah.`;
+    } else if (agent.type === 'Code Assistant') {
+      enhancedResponse += `As a programming specialist, I can help you implement any technical solutions related to this information. Let me know if you need code examples or technical implementation details.`;
+    } else if (agent.type === 'Research Assistant') {
+      enhancedResponse += `Based on the research above, I can help you dive deeper into specific aspects, provide academic citations, or assist with further analysis of this topic.`;
+    } else if (agent.type === 'Math Specialist') {
+      enhancedResponse += `If there are any mathematical concepts or calculations related to this topic, I can provide detailed explanations and solve any numerical problems.`;
+    } else if (agent.type === 'Science Specialist') {
+      enhancedResponse += `From a scientific standpoint, I can explain the underlying principles, mechanisms, and provide evidence-based analysis of this information.`;
+    } else {
+      enhancedResponse += `I can provide additional analysis, answer follow-up questions, or help you explore specific aspects of this information in more detail.`;
+    }
+    
   } else {
-    baseResponse += `\n\nLet me provide you with a comprehensive analysis based on my expertise and the latest available information.`;
+    enhancedResponse = `I apologize, but I wasn't able to find current web information about "${userMessage}". However, I can still help you with general knowledge or guide you to reliable sources for this topic.`;
   }
-
-  return baseResponse;
+  
+  return enhancedResponse;
 };
