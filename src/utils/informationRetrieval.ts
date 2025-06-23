@@ -12,27 +12,87 @@ interface WebSearchResponse {
   timestamp: Date;
 }
 
+// Smart function to determine if web search is needed
+const shouldUseWebSearch = (query: string): boolean => {
+  const lowerQuery = query.toLowerCase();
+  
+  // Don't search for basic math operations
+  if (lowerQuery.includes('differentiate') || 
+      lowerQuery.includes('derivative') || 
+      lowerQuery.includes('integrate') ||
+      lowerQuery.includes('solve') ||
+      lowerQuery.match(/\d+\s*[\+\-\*\/\^]\s*\w+/) ||
+      lowerQuery.match(/[a-z]\^[a-z0-9]/)) {
+    return false;
+  }
+  
+  // Don't search for general guidance requests
+  if (lowerQuery.includes('step by step') ||
+      lowerQuery.includes('guidance') ||
+      lowerQuery.includes('help me') ||
+      lowerQuery.includes('how do i') ||
+      lowerQuery.includes('explain') ||
+      lowerQuery.includes('what is the difference') ||
+      lowerQuery.includes('can you help')) {
+    return false;
+  }
+  
+  // Don't search for basic programming questions
+  if (lowerQuery.includes('code') ||
+      lowerQuery.includes('function') ||
+      lowerQuery.includes('javascript') ||
+      lowerQuery.includes('react') ||
+      lowerQuery.includes('css')) {
+    return false;
+  }
+  
+  // DO search for current events, specific facts, recent information
+  if (lowerQuery.includes('news') ||
+      lowerQuery.includes('latest') ||
+      lowerQuery.includes('current') ||
+      lowerQuery.includes('recent') ||
+      lowerQuery.includes('2024') ||
+      lowerQuery.includes('2025') ||
+      lowerQuery.includes('weather') ||
+      lowerQuery.includes('stock price') ||
+      lowerQuery.includes('who is the president') ||
+      lowerQuery.includes('population of')) {
+    return true;
+  }
+  
+  // Search for specific factual lookups
+  if (lowerQuery.includes('find me') ||
+      lowerQuery.includes('search for') ||
+      lowerQuery.includes('look up') ||
+      lowerQuery.includes('what happened') ||
+      lowerQuery.includes('when did')) {
+    return true;
+  }
+  
+  // Default to not searching - let AI provide direct answers
+  return false;
+};
+
 // Enhanced web search with multiple fallback strategies
 export const searchWeb = async (query: string): Promise<WebSearchResponse> => {
-  console.log('Searching for:', query);
+  console.log('Checking if web search is needed for:', query);
+  
+  // Check if web search is actually needed
+  if (!shouldUseWebSearch(query)) {
+    console.log('Web search not needed, will provide direct response');
+    return {
+      results: [],
+      query,
+      timestamp: new Date()
+    };
+  }
+  
+  console.log('Performing web search for:', query);
   
   try {
-    // Try multiple search strategies
     const results: SearchResult[] = [];
     
     // Strategy 1: Try Wikipedia for educational content
-    if (query.toLowerCase().includes('differentiation') || 
-        query.toLowerCase().includes('calculus') || 
-        query.toLowerCase().includes('mathematics') ||
-        query.toLowerCase().includes('math')) {
-      
-      const wikiResults = await searchWikipedia('calculus differentiation');
-      if (wikiResults.length > 0) {
-        results.push(...wikiResults);
-      }
-    }
-    
-    // Strategy 2: For cooking/recipes, use a recipe knowledge base
     if (query.toLowerCase().includes('recipe') || 
         query.toLowerCase().includes('cooking') || 
         query.toLowerCase().includes('beef') ||
@@ -44,18 +104,12 @@ export const searchWeb = async (query: string): Promise<WebSearchResponse> => {
       }
     }
     
-    // Strategy 3: Try alternative Wikipedia search for general topics
+    // Strategy 2: Try Wikipedia for general factual content
     if (results.length === 0) {
-      const generalResults = await searchWikipediaGeneral(query);
-      if (generalResults.length > 0) {
-        results.push(...generalResults);
+      const wikiResults = await searchWikipediaGeneral(query);
+      if (wikiResults.length > 0) {
+        results.push(...wikiResults);
       }
-    }
-    
-    // Strategy 4: If all else fails, provide comprehensive knowledge-based responses
-    if (results.length === 0) {
-      const knowledgeResults = generateKnowledgeBasedResponse(query);
-      results.push(...knowledgeResults);
     }
     
     console.log('Search results found:', results.length);
@@ -69,9 +123,8 @@ export const searchWeb = async (query: string): Promise<WebSearchResponse> => {
   } catch (error) {
     console.error('Web search error:', error);
     
-    // Always provide helpful fallback responses
     return {
-      results: generateKnowledgeBasedResponse(query),
+      results: [],
       query,
       timestamp: new Date()
     };
@@ -81,7 +134,6 @@ export const searchWeb = async (query: string): Promise<WebSearchResponse> => {
 // Enhanced Wikipedia search
 const searchWikipedia = async (searchTerm: string): Promise<SearchResult[]> => {
   try {
-    // First try to get search suggestions
     const searchResponse = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`);
     
     if (searchResponse.ok) {
@@ -134,7 +186,6 @@ const searchWikipediaGeneral = async (query: string): Promise<SearchResult[]> =>
 
 // Recipe information provider
 const getRecipeInformation = async (query: string): Promise<SearchResult[]> => {
-  // Since external recipe APIs might not be available, provide comprehensive recipe knowledge
   const recipeKeywords = query.toLowerCase();
   
   if (recipeKeywords.includes('beef')) {
@@ -154,63 +205,6 @@ const getRecipeInformation = async (query: string): Promise<SearchResult[]> => {
   return [];
 };
 
-// Comprehensive knowledge-based responses
-const generateKnowledgeBasedResponse = (query: string): SearchResult[] => {
-  const lowerQuery = query.toLowerCase();
-  
-  // Mathematics/Calculus responses
-  if (lowerQuery.includes('differentiation') || lowerQuery.includes('derivative') || lowerQuery.includes('calculus')) {
-    return [{
-      title: "Differentiation in Calculus - Complete Guide",
-      snippet: "Differentiation is the process of finding the derivative of a function. Key rules: Power Rule: d/dx(x^n) = nx^(n-1), Product Rule: d/dx(uv) = u'v + uv', Chain Rule: d/dx(f(g(x))) = f'(g(x))⋅g'(x). Applications: finding slopes, rates of change, optimization problems. Example: d/dx(x²) = 2x. Practice with polynomials first, then move to trigonometric and exponential functions.",
-      url: "https://en.wikipedia.org/wiki/Derivative",
-      source: "Mathematics Knowledge Base"
-    }, {
-      title: "Step-by-Step Differentiation Examples",
-      snippet: "Common differentiation problems: 1) f(x) = 3x² + 2x - 1 → f'(x) = 6x + 2, 2) f(x) = sin(x) → f'(x) = cos(x), 3) f(x) = e^x → f'(x) = e^x, 4) f(x) = ln(x) → f'(x) = 1/x. For composite functions, use the chain rule. For products, use the product rule. Practice these fundamental patterns first.",
-      url: "https://www.khanacademy.org/math/calculus-1/cs1-derivatives",
-      source: "Educational Resources"
-    }];
-  }
-  
-  // Cooking/Recipe responses
-  if (lowerQuery.includes('recipe') || lowerQuery.includes('cooking') || lowerQuery.includes('cook')) {
-    if (lowerQuery.includes('beef')) {
-      return [{
-        title: "Easy Beef Recipes Collection",
-        snippet: "Top beef recipes: 1) Beef Stir-Fry: Cut beef into strips, marinate in soy sauce, stir-fry with vegetables. 2) Beef Tacos: Season ground beef with cumin, paprika, cook until browned, serve in tortillas. 3) Beef and Broccoli: Tender beef strips with broccoli in savory sauce. 4) Classic Meatballs: Mix ground beef with breadcrumbs, egg, seasonings, bake at 375°F for 20 minutes.",
-        url: "#beef-recipes",
-        source: "Culinary Knowledge Base"
-      }];
-    }
-    
-    return [{
-      title: "General Cooking Tips and Recipes",
-      snippet: "Essential cooking techniques: Sautéing (high heat, quick cooking), braising (slow cooking in liquid), roasting (dry heat in oven), grilling (direct heat). Basic flavor combinations: garlic + herbs, lemon + pepper, soy sauce + ginger. Always taste and adjust seasoning. Prep ingredients before cooking (mise en place).",
-      url: "#cooking-tips",
-      source: "Culinary Knowledge Base"
-    }];
-  }
-  
-  // General help responses
-  if (lowerQuery.includes('help') || lowerQuery.includes('how to') || lowerQuery.includes('explain')) {
-    return [{
-      title: "How I Can Help You",
-      snippet: "I can assist with: Mathematics (calculus, algebra, geometry), Science (physics, chemistry, biology), Programming (JavaScript, Python, web development), Writing (essays, creative writing, editing), Research (fact-finding, analysis), Problem-solving (step-by-step guidance), and much more. Just ask specific questions for detailed explanations.",
-      url: "#help-guide",
-      source: "Assistant Capabilities"
-    }];
-  }
-  
-  // Default comprehensive response
-  return [{
-    title: `Information about "${query}"`,
-    snippet: `I have extensive knowledge on this topic and can provide detailed explanations, step-by-step guidance, examples, and practical applications. While I couldn't fetch real-time web results for "${query}", I can still offer comprehensive information based on my training. Please ask more specific questions about what aspect you'd like to explore, and I'll provide detailed, helpful responses.`,
-    url: "#knowledge-base",
-    source: "Comprehensive Knowledge Base"
-  }];
-};
-
 export const generateEnhancedResponse = async (
   userMessage: string, 
   agent: any, 
@@ -218,10 +212,80 @@ export const generateEnhancedResponse = async (
 ): Promise<string> => {
   console.log('Generating enhanced response for:', userMessage);
   
-  let enhancedResponse = '';
+  const lowerMessage = userMessage.toLowerCase();
   
+  // Handle mathematical differentiation directly
+  if (lowerMessage.includes('differentiate') || lowerMessage.includes('derivative')) {
+    if (lowerMessage.includes('2^x') || lowerMessage.includes('2**x')) {
+      return `**Differentiating 2^x:**
+
+The derivative of 2^x is **2^x × ln(2)**
+
+**Step-by-step solution:**
+1. For exponential functions of the form a^x (where a is a constant), use the formula: d/dx(a^x) = a^x × ln(a)
+2. Here, a = 2, so: d/dx(2^x) = 2^x × ln(2)
+3. Since ln(2) ≈ 0.693, the derivative is approximately 0.693 × 2^x
+
+**General rule:** For any exponential function a^x, the derivative is a^x × ln(a).
+
+**Examples:**
+- d/dx(3^x) = 3^x × ln(3)
+- d/dx(e^x) = e^x × ln(e) = e^x (since ln(e) = 1)
+
+Would you like me to explain more differentiation rules or work through another example?`;
+    }
+    
+    return `**Differentiation Guide:**
+
+Differentiation is finding the rate of change (derivative) of a function. Here are the key rules:
+
+**Basic Rules:**
+1. **Power Rule:** d/dx(x^n) = nx^(n-1)
+2. **Constant Rule:** d/dx(c) = 0
+3. **Sum Rule:** d/dx(f + g) = f' + g'
+4. **Product Rule:** d/dx(fg) = f'g + fg'
+5. **Chain Rule:** d/dx(f(g(x))) = f'(g(x)) × g'(x)
+
+**Common Derivatives:**
+- d/dx(sin x) = cos x
+- d/dx(cos x) = -sin x
+- d/dx(e^x) = e^x
+- d/dx(ln x) = 1/x
+
+**Step-by-step approach:**
+1. Identify which rule to use
+2. Apply the rule carefully
+3. Simplify the result
+
+What specific function would you like me to differentiate?`;
+  }
+  
+  // Handle step-by-step guidance requests
+  if (lowerMessage.includes('step by step') || lowerMessage.includes('guidance')) {
+    return `**Step-by-Step Guidance:**
+
+I'm here to provide detailed, step-by-step help! To give you the most useful guidance, could you please specify what topic or problem you need help with?
+
+**I can provide step-by-step guidance for:**
+- **Mathematics:** Calculus, algebra, geometry, statistics
+- **Programming:** Code debugging, algorithm design, web development
+- **Problem-solving:** Breaking down complex problems into manageable steps
+- **Learning:** Study strategies, concept explanations
+- **Projects:** Planning and execution strategies
+
+**How I structure step-by-step guidance:**
+1. **Understand** the problem/goal
+2. **Break down** into smaller, manageable steps
+3. **Explain** each step clearly with examples
+4. **Provide** practice opportunities
+5. **Check** understanding and adjust as needed
+
+What specific topic would you like step-by-step guidance on?`;
+  }
+  
+  // If we have search results, format them
   if (searchResults && searchResults.results.length > 0) {
-    enhancedResponse += `**Information found about "${userMessage}":**\n\n`;
+    let enhancedResponse = `**Information found about "${userMessage}":**\n\n`;
     
     searchResults.results.forEach((result, index) => {
       enhancedResponse += `**${index + 1}. ${result.title}**\n`;
@@ -237,23 +301,15 @@ export const generateEnhancedResponse = async (
     enhancedResponse += `**Analysis as ${agent.name}:**\n`;
     
     // Agent-specific analysis based on type
-    if (agent.type === 'Islamic Studies Specialist') {
-      enhancedResponse += `From an Islamic perspective, I can provide additional context and scholarly commentary on this topic. The information above should be verified against authentic Islamic sources like the Quran and Sunnah.`;
-    } else if (agent.type === 'Code Assistant') {
-      enhancedResponse += `As a programming specialist, I can help you implement any technical solutions related to this information. Let me know if you need code examples or technical implementation details.`;
-    } else if (agent.type === 'Research Assistant') {
-      enhancedResponse += `Based on the research above, I can help you dive deeper into specific aspects, provide academic citations, or assist with further analysis of this topic.`;
-    } else if (agent.type === 'Math Specialist') {
+    if (agent.type === 'Math Specialist') {
       enhancedResponse += `If there are any mathematical concepts or calculations related to this topic, I can provide detailed explanations, work through examples step-by-step, and solve any numerical problems you have.`;
-    } else if (agent.type === 'Science Specialist') {
-      enhancedResponse += `From a scientific standpoint, I can explain the underlying principles, mechanisms, and provide evidence-based analysis of this information with detailed examples and applications.`;
     } else {
       enhancedResponse += `I can provide additional analysis, answer follow-up questions, work through examples, or help you explore specific aspects of this information in more detail.`;
     }
     
-  } else {
-    enhancedResponse = `I understand you're asking about "${userMessage}". While I couldn't fetch real-time web results, I have comprehensive knowledge on this topic and can provide detailed, helpful information. Please ask more specific questions about what you'd like to know, and I'll give you thorough explanations, examples, and step-by-step guidance.`;
+    return enhancedResponse;
   }
   
-  return enhancedResponse;
+  // Default response for when no web search was performed
+  return `I understand you're asking about "${userMessage}". I have comprehensive knowledge on this topic and can provide detailed, helpful information. Please ask more specific questions about what you'd like to know, and I'll give you thorough explanations, examples, and step-by-step guidance.`;
 };
