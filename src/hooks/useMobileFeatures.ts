@@ -2,11 +2,29 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+
+// Import with try-catch for optional dependencies
+let PushNotifications: any = null;
+let StatusBar: any = null;
+let Style: any = null;
+
+try {
+  const pushModule = await import('@capacitor/push-notifications');
+  PushNotifications = pushModule.PushNotifications;
+} catch (error) {
+  console.warn('Push notifications not available:', error);
+}
+
+try {
+  const statusModule = await import('@capacitor/status-bar');
+  StatusBar = statusModule.StatusBar;
+  Style = statusModule.Style;
+} catch (error) {
+  console.warn('Status bar not available:', error);
+}
 
 export interface MobileFeatures {
   isNative: boolean;
@@ -17,7 +35,7 @@ export interface MobileFeatures {
   getOfflineData: (key: string) => Promise<any>;
   requestPushNotifications: () => Promise<boolean>;
   sendLocalNotification: (title: string, body: string) => Promise<void>;
-  setStatusBarStyle: (style: Style) => Promise<void>;
+  setStatusBarStyle: (style: any) => Promise<void>;
   hideSplashScreen: () => Promise<void>;
 }
 
@@ -46,38 +64,42 @@ export const useMobileFeatures = (): MobileFeatures => {
 
   const initializeMobileFeatures = async () => {
     try {
-      // Set status bar style
-      await StatusBar.setStyle({ style: Style.Dark });
+      // Set status bar style if available
+      if (StatusBar && Style) {
+        await StatusBar.setStyle({ style: Style.Dark });
+      }
       
       // Hide splash screen
       await SplashScreen.hide();
 
-      // Check push notification permissions
-      const permStatus = await PushNotifications.checkPermissions();
-      setPushNotificationsEnabled(permStatus.receive === 'granted');
+      // Check push notification permissions if available
+      if (PushNotifications) {
+        const permStatus = await PushNotifications.checkPermissions();
+        setPushNotificationsEnabled(permStatus.receive === 'granted');
 
-      // Register for push notifications if not already done
-      if (permStatus.receive !== 'granted') {
-        const result = await PushNotifications.requestPermissions();
-        setPushNotificationsEnabled(result.receive === 'granted');
+        // Register for push notifications if not already done
+        if (permStatus.receive !== 'granted') {
+          const result = await PushNotifications.requestPermissions();
+          setPushNotificationsEnabled(result.receive === 'granted');
+        }
+
+        if (pushNotificationsEnabled) {
+          await PushNotifications.register();
+        }
+
+        // Listen for push notifications
+        PushNotifications.addListener('registration', (token: any) => {
+          console.log('Push registration success, token: ' + token.value);
+        });
+
+        PushNotifications.addListener('registrationError', (error: any) => {
+          console.error('Error on registration: ' + JSON.stringify(error));
+        });
+
+        PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
+          console.log('Push notification received: ', notification);
+        });
       }
-
-      if (pushNotificationsEnabled) {
-        await PushNotifications.register();
-      }
-
-      // Listen for push notifications
-      PushNotifications.addListener('registration', (token) => {
-        console.log('Push registration success, token: ' + token.value);
-      });
-
-      PushNotifications.addListener('registrationError', (error) => {
-        console.error('Error on registration: ' + JSON.stringify(error));
-      });
-
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
-        console.log('Push notification received: ', notification);
-      });
 
     } catch (error) {
       console.error('Error initializing mobile features:', error);
@@ -116,7 +138,7 @@ export const useMobileFeatures = (): MobileFeatures => {
   };
 
   const requestPushNotifications = async (): Promise<boolean> => {
-    if (!isNative) return false;
+    if (!isNative || !PushNotifications) return false;
     
     try {
       const result = await PushNotifications.requestPermissions();
@@ -151,8 +173,8 @@ export const useMobileFeatures = (): MobileFeatures => {
     }
   };
 
-  const setStatusBarStyle = async (style: Style) => {
-    if (isNative) {
+  const setStatusBarStyle = async (style: any) => {
+    if (isNative && StatusBar) {
       try {
         await StatusBar.setStyle({ style });
       } catch (error) {
