@@ -6,25 +6,27 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { SplashScreen } from '@capacitor/splash-screen';
 
-// Import with try-catch for optional dependencies
+// Dynamic imports for optional dependencies
 let PushNotifications: any = null;
 let StatusBar: any = null;
 let Style: any = null;
 
-try {
-  const pushModule = await import('@capacitor/push-notifications');
-  PushNotifications = pushModule.PushNotifications;
-} catch (error) {
-  console.warn('Push notifications not available:', error);
-}
+const initializeOptionalModules = async () => {
+  try {
+    const pushModule = await import('@capacitor/push-notifications');
+    PushNotifications = pushModule.PushNotifications;
+  } catch (error) {
+    console.warn('Push notifications not available:', error);
+  }
 
-try {
-  const statusModule = await import('@capacitor/status-bar');
-  StatusBar = statusModule.StatusBar;
-  Style = statusModule.Style;
-} catch (error) {
-  console.warn('Status bar not available:', error);
-}
+  try {
+    const statusModule = await import('@capacitor/status-bar');
+    StatusBar = statusModule.StatusBar;
+    Style = statusModule.Style;
+  } catch (error) {
+    console.warn('Status bar not available:', error);
+  }
+};
 
 export interface MobileFeatures {
   isNative: boolean;
@@ -53,7 +55,9 @@ export const useMobileFeatures = (): MobileFeatures => {
 
     // Initialize mobile features if on native platform
     if (isNative) {
-      initializeMobileFeatures();
+      initializeOptionalModules().then(() => {
+        initializeMobileFeatures();
+      });
     }
 
     return () => {
