@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,37 @@ import CreateAgentModal from "@/components/CreateAgentModal";
 import OnboardingModal from "@/components/OnboardingModal";
 import SettingsPanel from "@/components/SettingsPanel";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
-import { agentTemplates } from "@/data/agentTemplates";
+
+// Mock data for agent templates
+const agentTemplates = [
+  {
+    id: "1",
+    name: "Code Assistant",
+    description: "Helps with coding tasks and debugging",
+    type: "Development",
+    avatar: "👨‍💻",
+    capabilities: ["Code Generation", "Debugging", "Code Review"],
+    prompt: "You are a helpful coding assistant."
+  },
+  {
+    id: "2",
+    name: "Creative Writer",
+    description: "Assists with creative writing and content creation",
+    type: "Creative",
+    avatar: "🎨",
+    capabilities: ["Content Creation", "Copywriting", "Brainstorming"],
+    prompt: "You are a creative writing assistant."
+  },
+  {
+    id: "3",
+    name: "Data Analyst",
+    description: "Analyzes data and provides insights",
+    type: "Analytics",
+    avatar: "📊",
+    capabilities: ["Data Analysis", "Reporting", "Visualization"],
+    prompt: "You are a data analysis expert."
+  }
+];
 
 interface Agent {
   id: string;
@@ -81,8 +112,6 @@ const Index = () => {
 
   useEffect(() => {
     // Simulate fetching agents from an API or local storage
-    // For now, we'll use mockAgents
-    // You can replace this with your actual data fetching logic
     setAgents(mockAgents);
 
     // Open onboarding modal on first visit
@@ -115,6 +144,10 @@ const Index = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleBackToAgents = () => {
+    setActiveTab("agents");
   };
 
   return (
@@ -193,7 +226,7 @@ const Index = () => {
 
           <TabsContent value="agents">
             <div className="flex flex-col md:flex-row">
-              {isNative && isSidebarOpen && (
+              {!isNative && isSidebarOpen && (
                 <div className="w-full md:w-64 mr-4">
                   <AgentSidebar
                     agents={agents}
@@ -216,7 +249,7 @@ const Index = () => {
                       {agents.map((agent) => (
                         <Card
                           key={agent.id}
-                          className={`bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-colors ${
+                          className={`bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-colors cursor-pointer ${
                             currentAgent?.id === agent.id ? "border-2 border-purple-500" : ""
                           }`}
                           onClick={() => handleAgentSelect(agent)}
@@ -267,10 +300,36 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="chat">
-            {isNative ? (
-              <MobileChatInterface agent={currentAgent} />
+            {currentAgent ? (
+              isNative ? (
+                <MobileChatInterface 
+                  agent={currentAgent}
+                  agents={agents}
+                  onBack={handleBackToAgents}
+                  onSwitchAgent={handleAgentSelect}
+                  onSendMessage={(message) => console.log("Sending message:", message)}
+                />
+              ) : (
+                <ChatInterface 
+                  agent={currentAgent}
+                  agents={agents}
+                  onBack={handleBackToAgents}
+                  onSwitchAgent={handleAgentSelect}
+                />
+              )
             ) : (
-              <ChatInterface agent={currentAgent} />
+              <Card className="bg-gray-800/50 border-purple-500/30">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Brain className="w-12 h-12 text-purple-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">No Agent Selected</h3>
+                  <p className="text-gray-400 text-center mb-4">
+                    Choose an AI agent to start chatting
+                  </p>
+                  <Button onClick={() => setActiveTab("agents")} className="bg-purple-600 hover:bg-purple-700">
+                    Select Agent
+                  </Button>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
@@ -316,7 +375,7 @@ const Index = () => {
       <CreateAgentModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateAgent}
+        onCreateAgent={handleCreateAgent}
         templates={agentTemplates}
       />
 

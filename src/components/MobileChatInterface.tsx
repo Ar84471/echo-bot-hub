@@ -1,14 +1,11 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Mic, MicOff, MoreVertical, Bot, Wifi, WifiOff, Bell, BellOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Send, Bot, Mic, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useMobileFeatures } from '@/hooks/useMobileFeatures';
-import { useAudioRecording } from '@/hooks/useAudioRecording';
-import AgentSwitcher from './AgentSwitcher';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Agent {
   id: string;
@@ -30,9 +27,9 @@ interface Message {
 }
 
 interface MobileChatInterfaceProps {
-  agent: Agent;
-  agents: Agent[];
-  messages: Message[];
+  agent?: Agent;
+  agents?: Agent[];
+  messages?: Message[];
   onBack: () => void;
   onSwitchAgent: (agent: Agent) => void;
   onSendMessage: (message: string) => void;
@@ -40,190 +37,94 @@ interface MobileChatInterfaceProps {
 
 const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   agent,
-  agents,
-  messages,
+  agents = [],
+  messages = [],
   onBack,
   onSwitchAgent,
   onSendMessage
 }) => {
   const [inputMessage, setInputMessage] = useState('');
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  
-  const {
-    isNative,
-    isOffline,
-    pushNotificationsEnabled,
-    hapticFeedback,
-    saveOfflineData,
-    getOfflineData,
-    requestPushNotifications,
-    sendLocalNotification
-  } = useMobileFeatures();
 
-  const {
-    isRecording,
-    startRecording,
-    stopRecording,
-    duration,
-    error: recordingError
-  } = useAudioRecording();
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Save messages offline
-  useEffect(() => {
-    if (isNative && messages.length > 0) {
-      saveOfflineData(`messages_${agent.id}`, messages);
-    }
-  }, [messages, agent.id, isNative, saveOfflineData]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
-
-    await hapticFeedback();
-    
-    // Save message offline if needed
-    if (isOffline) {
-      await saveOfflineData(`pending_message_${Date.now()}`, {
-        text: inputMessage,
-        agentId: agent.id,
-        timestamp: new Date()
-      });
-      
-      toast({
-        title: "Message Saved Offline",
-        description: "Your message will be sent when you're back online.",
-      });
-    } else {
-      onSendMessage(inputMessage);
-    }
-    
+    onSendMessage(inputMessage);
     setInputMessage('');
-  };
-
-  const handleVoiceToggle = async () => {
-    await hapticFeedback();
-    
-    if (isRecording) {
-      const audioBlob = await stopRecording();
-      if (audioBlob) {
-        // In a real app, you'd convert speech to text here
-        toast({
-          title: "Voice Message Recorded",
-          description: "Voice-to-text conversion would process this audio.",
-        });
-      }
-    } else {
-      setIsVoiceMode(!isVoiceMode);
-      if (!isVoiceMode) {
-        await startRecording();
-      }
-    }
-  };
-
-  const handleNotificationToggle = async () => {
-    await hapticFeedback();
-    
-    if (!pushNotificationsEnabled) {
-      const granted = await requestPushNotifications();
-      if (granted) {
-        toast({
-          title: "Notifications Enabled",
-          description: "You'll receive updates about your agents.",
-        });
-      }
-    } else {
-      toast({
-        title: "Notifications",
-        description: "Push notifications are already enabled.",
-      });
-    }
   };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (!agent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <Bot className="w-12 h-12 mx-auto mb-4 text-purple-500" />
+          <h2 className="text-xl font-semibold">No Agent Selected</h2>
+          <p className="text-gray-400">Please select an agent to start chatting</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col">
-      {/* Mobile Header */}
-      <div className="bg-black/95 backdrop-blur-sm border-b border-purple-500/20 p-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="hover:bg-gray-800 text-gray-300"
-          >
-            <ArrowLeft className="w-5 h-5" />
+      {/* Header */}
+      <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button variant="ghost" size="sm" onClick={onBack} className="text-gray-300">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="text-xl">{agent.avatar}</div>
+            <div>
+              <h1 className="text-sm font-semibold text-white">{agent.name}</h1>
+              <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
+                {agent.type}
+              </Badge>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" className="text-gray-400">
+            <MoreVertical className="w-4 h-4" />
           </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNotificationToggle}
-              className={`${pushNotificationsEnabled ? 'text-green-400' : 'text-gray-400'}`}
-            >
-              {pushNotificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-            </Button>
-            
-            <div className="flex items-center space-x-1">
-              {isOffline ? (
-                <WifiOff className="w-4 h-4 text-red-400" />
-              ) : (
-                <Wifi className="w-4 h-4 text-green-400" />
-              )}
-            </div>
-            
-            <Button variant="ghost" size="sm" className="text-gray-400">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </div>
         </div>
-        
-        {/* Agent Switcher */}
-        <AgentSwitcher
-          agents={agents}
-          currentAgent={agent}
-          onSwitchAgent={onSwitchAgent}
-        />
-        
-        {isOffline && (
-          <div className="mt-2 px-3 py-2 bg-yellow-900/50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <WifiOff className="w-4 h-4 text-yellow-400" />
-              <span className="text-xs text-yellow-300">Offline Mode - Messages will sync when online</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
+          {messages.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">{agent.avatar}</div>
+              <h3 className="text-lg font-semibold text-white mb-2">
+                Chat with {agent.name}
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                {agent.description}
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {agent.capabilities.slice(0, 2).map((capability, index) => (
+                  <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                    {capability}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`flex space-x-2 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                <div className="flex-shrink-0">
+              <div className={`flex space-x-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                <div className="flex-shrink-0 mt-1">
                   {message.sender === 'agent' ? (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center text-white text-sm">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
+                      <Bot className="w-3 h-3 text-white" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-sm font-medium">
+                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-medium">
                       U
                     </div>
                   )}
@@ -232,7 +133,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
                 <Card className={`p-3 ${
                   message.sender === 'user' 
                     ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white' 
-                    : 'bg-gray-800/70 text-white'
+                    : 'bg-gray-800/70 backdrop-blur-sm border-purple-500/20 text-white'
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                   <p className={`text-xs mt-1 ${
@@ -244,78 +145,36 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
-      </div>
-
-      {/* Voice Mode Indicator */}
-      {isVoiceMode && (
-        <div className="px-4 py-2 bg-blue-900/50 border-t border-blue-500/20">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-blue-300 text-sm">
-              {isRecording ? `Recording... ${duration.toFixed(1)}s` : 'Voice mode active'}
-            </span>
-          </div>
-        </div>
-      )}
+      </ScrollArea>
 
       {/* Input Area */}
-      <div className="bg-black/95 backdrop-blur-sm border-t border-purple-500/20 p-4">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
+      <div className="bg-black/90 backdrop-blur-sm border-t border-purple-500/20 p-4">
+        <div className="flex space-x-2">
           <div className="flex-1 relative">
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={isVoiceMode ? "Tap mic to speak..." : `Message ${agent.name}...`}
-              className="pr-12 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
-              disabled={isVoiceMode && isRecording}
-              maxLength={500}
+              placeholder={`Message ${agent.name}...`}
+              className="pr-10 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={handleVoiceToggle}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${
-                isVoiceMode || isRecording ? 'text-red-400 bg-red-900/30' : 'text-gray-400'
-              }`}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
-              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              <Mic className="w-4 h-4" />
             </Button>
           </div>
-          
           <Button
-            type="submit"
-            disabled={!inputMessage.trim() || (isVoiceMode && !isRecording)}
-            className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-4"
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim()}
+            className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
           >
             <Send className="w-4 h-4" />
           </Button>
-        </form>
-        
-        {/* Mobile Features Status */}
-        <div className="flex items-center justify-center mt-2 space-x-4 text-xs text-gray-400">
-          {isNative && (
-            <Badge variant="outline" className="border-blue-500/30 text-blue-300">
-              Native App
-            </Badge>
-          )}
-          {isOffline ? (
-            <Badge variant="outline" className="border-yellow-500/30 text-yellow-300">
-              Offline
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="border-green-500/30 text-green-300">
-              Online
-            </Badge>
-          )}
-          {pushNotificationsEnabled && (
-            <Badge variant="outline" className="border-purple-500/30 text-purple-300">
-              Notifications ON
-            </Badge>
-          )}
         </div>
       </div>
     </div>

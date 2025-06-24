@@ -1,240 +1,186 @@
+
 import React, { useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Agent {
+  id: string;
   name: string;
   description: string;
   type: string;
   avatar: string;
   isActive: boolean;
+  lastUsed: string;
   capabilities: string[];
+}
+
+interface AgentTemplate {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  avatar: string;
+  capabilities: string[];
+  prompt: string;
 }
 
 interface CreateAgentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateAgent: (agent: Agent) => void;
+  templates: AgentTemplate[];
 }
 
-const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ isOpen, onClose, onCreateAgent }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: '',
-    avatar: '🤖'
-  });
-  const [capabilities, setCapabilities] = useState<string[]>([]);
-  const [newCapability, setNewCapability] = useState('');
+const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
+  isOpen,
+  onClose,
+  onCreateAgent,
+  templates
+}) => {
+  const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
+  const [agentName, setAgentName] = useState('');
+  const [agentDescription, setAgentDescription] = useState('');
 
-  const agentTypes = [
-    'Neural Assistant',
-    'Code Architect',
-    'Creative Synthesizer',
-    'Data Analyst',
-    'Research Engine',
-    'Support Vector',
-    'Logic Processor',
-    'Content Generator'
-  ];
+  const handleCreateAgent = () => {
+    if (!selectedTemplate || !agentName.trim()) return;
 
-  const avatarOptions = ['🤖', '🧠', '💻', '✍️', '📊', '🎯', '🔍', '💡', '🎨', '📚'];
-  const suggestedCapabilities = [
-    'Text Generation', 'Code Review', 'Data Analysis', 'Creative Writing', 
-    'Problem Solving', 'Research', 'Translation', 'Summarization',
-    'Email Writing', 'Planning', 'Brainstorming', 'Debugging'
-  ];
+    const newAgent: Agent = {
+      id: Date.now().toString(),
+      name: agentName.trim(),
+      description: agentDescription.trim() || selectedTemplate.description,
+      type: selectedTemplate.type,
+      avatar: selectedTemplate.avatar,
+      isActive: true,
+      lastUsed: new Date().toISOString(),
+      capabilities: selectedTemplate.capabilities,
+    };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    onCreateAgent(newAgent);
+    setSelectedTemplate(null);
+    setAgentName('');
+    setAgentDescription('');
   };
-
-  const addCapability = (capability: string) => {
-    if (capability && !capabilities.includes(capability)) {
-      setCapabilities([...capabilities, capability]);
-      setNewCapability('');
-    }
-  };
-
-  const removeCapability = (capability: string) => {
-    setCapabilities(capabilities.filter(c => c !== capability));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.name && formData.description && formData.type) {
-      onCreateAgent({
-        ...formData,
-        capabilities,
-        isActive: true
-      });
-      // Reset form
-      setFormData({ name: '', description: '', type: '', avatar: '🤖' });
-      setCapabilities([]);
-      setNewCapability('');
-    }
-  };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-gray-900 rounded-2xl shadow-2xl border border-purple-500/20 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-purple-500/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-white">Deploy New AI Agent</h2>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-400 hover:text-white hover:bg-gray-800">
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-300">Agent Designation</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter agent designation"
-                className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="type" className="text-gray-300">Agent Classification</Label>
-              <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)} required>
-                <SelectTrigger className="border-purple-500/30 bg-gray-800 text-white">
-                  <SelectValue placeholder="Select agent type" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-purple-500/30">
-                  {agentTypes.map((type) => (
-                    <SelectItem key={type} value={type} className="text-white hover:bg-gray-700">{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-300">Neural Configuration</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Define the agent's specialized neural pathways and capabilities..."
-              className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 min-h-[100px]"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-gray-300">Avatar Interface</Label>
-            <div className="flex flex-wrap gap-2">
-              {avatarOptions.map((avatar) => (
-                <button
-                  key={avatar}
-                  type="button"
-                  onClick={() => handleInputChange('avatar', avatar)}
-                  className={`w-12 h-12 rounded-lg border-2 text-xl hover:bg-gray-800 transition-colors ${
-                    formData.avatar === avatar ? 'border-purple-500 bg-purple-900/50' : 'border-purple-500/30'
-                  }`}
-                >
-                  {avatar}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label className="text-gray-300">Neural Capabilities</Label>
-            <div className="flex space-x-2">
-              <Input
-                value={newCapability}
-                onChange={(e) => setNewCapability(e.target.value)}
-                placeholder="Add neural capability"
-                className="border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCapability(newCapability))}
-              />
-              <Button 
-                type="button" 
-                onClick={() => addCapability(newCapability)}
-                variant="outline"
-                className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50"
-              >
-                Add
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm text-gray-400">Suggested neural pathways:</p>
-              <div className="flex flex-wrap gap-2">
-                {suggestedCapabilities.map((capability) => (
-                  <button
-                    key={capability}
-                    type="button"
-                    onClick={() => addCapability(capability)}
-                    className="text-xs px-2 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 rounded-md transition-colors border border-purple-500/20"
-                    disabled={capabilities.includes(capability)}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl bg-gray-800 border-purple-500/30">
+        <DialogHeader>
+          <DialogTitle className="text-white">Create New AI Agent</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {!selectedTemplate ? (
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Choose a Template</h3>
+              <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {templates.map((template) => (
+                  <Card
+                    key={template.id}
+                    className="cursor-pointer bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-colors"
+                    onClick={() => setSelectedTemplate(template)}
                   >
-                    {capability}
-                  </button>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <span className="text-2xl">{template.avatar}</span>
+                        <div>
+                          <h4 className="font-medium text-white">{template.name}</h4>
+                          <Badge variant="secondary" className="text-xs">
+                            {template.type}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-3">{template.description}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {template.capabilities.slice(0, 3).map((capability, index) => (
+                          <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                            {capability}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>
-
-            {capabilities.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-300">Active neural pathways:</p>
-                <div className="flex flex-wrap gap-2">
-                  {capabilities.map((capability) => (
-                    <Badge key={capability} variant="secondary" className="cursor-pointer hover:bg-red-900/50 bg-purple-900/50 text-purple-300">
-                      {capability}
-                      <button
-                        type="button"
-                        onClick={() => removeCapability(capability)}
-                        className="ml-1 text-red-400 hover:text-red-300"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
+          ) : (
+            <div className="space-y-4">
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedTemplate(null)}
+                className="text-purple-400 hover:text-purple-300"
+              >
+                ← Back to Templates
+              </Button>
+              
+              <div className="flex items-center space-x-3 mb-4">
+                <span className="text-3xl">{selectedTemplate.avatar}</span>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{selectedTemplate.name}</h3>
+                  <Badge variant="secondary">{selectedTemplate.type}</Badge>
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
-            >
-              Deploy Agent
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Agent Name *
+                  </label>
+                  <Input
+                    value={agentName}
+                    onChange={(e) => setAgentName(e.target.value)}
+                    placeholder="Enter agent name"
+                    className="bg-gray-700 border-gray-600 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description (Optional)
+                  </label>
+                  <Textarea
+                    value={agentDescription}
+                    onChange={(e) => setAgentDescription(e.target.value)}
+                    placeholder={selectedTemplate.description}
+                    className="bg-gray-700 border-gray-600 text-white"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Capabilities
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTemplate.capabilities.map((capability, index) => (
+                      <Badge key={index} variant="outline" className="border-purple-500/30 text-purple-300">
+                        {capability}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button variant="outline" onClick={onClose} className="border-gray-600 text-gray-300">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateAgent}
+                  disabled={!agentName.trim()}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Create Agent
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
