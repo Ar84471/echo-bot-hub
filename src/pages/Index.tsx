@@ -14,6 +14,7 @@ import OnboardingModal from '@/components/OnboardingModal';
 import Marketplace from '@/pages/Marketplace';
 import { loadAgents, saveAgents, updateAgentLastUsed } from '@/utils/storage';
 import { AgentTemplate } from '@/data/agentTemplates';
+import { useMobileFeatures } from '@/hooks/useMobileFeatures';
 
 interface Agent {
   id: string;
@@ -39,12 +40,12 @@ const Index = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
   const { credits, subscriptionTier, useCredits } = useSubscription();
+  const { isNative, sendLocalNotification } = useMobileFeatures();
 
   useEffect(() => {
     const loadedAgents = loadAgents();
     setAgents(loadedAgents);
     
-    // Show onboarding for new users
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
     if (!hasSeenOnboarding && loadedAgents.length === 0) {
       setShowOnboarding(true);
@@ -66,6 +67,13 @@ const Index = () => {
       title: "Agent Deployed Successfully",
       description: `${agent.name} has been activated in the neural network.`,
     });
+
+    if (isNative) {
+      sendLocalNotification(
+        "New Agent Deployed",
+        `${agent.name} is ready for conversation`
+      );
+    }
   };
 
   const handleCreateFromTemplate = (template: AgentTemplate) => {
@@ -89,6 +97,13 @@ const Index = () => {
       title: "Agent Created from Template",
       description: `${agent.name} has been deployed successfully.`,
     });
+
+    if (isNative) {
+      sendLocalNotification(
+        "Agent Ready",
+        `${agent.name} from template is now active`
+      );
+    }
   };
 
   const handleDeleteAgent = (agentId: string) => {
@@ -134,6 +149,26 @@ const Index = () => {
     setIsTransitioning(false);
   };
 
+  const handleSwitchAgent = (newAgent: Agent) => {
+    setSelectedAgent(newAgent);
+    updateAgentLastUsed(newAgent.id);
+    
+    setAgents(prevAgents => 
+      prevAgents.map(a => 
+        a.id === newAgent.id 
+          ? { ...a, lastUsed: 'Just now', isActive: true }
+          : a
+      )
+    );
+
+    if (isNative) {
+      sendLocalNotification(
+        "Agent Switched",
+        `Now chatting with ${newAgent.name}`
+      );
+    }
+  };
+
   const handleBackToDashboard = async () => {
     setIsTransitioning(true);
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -159,7 +194,12 @@ const Index = () => {
   if (showChat && selectedAgent) {
     return (
       <div className={`transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-        <ChatInterface agent={selectedAgent} onBack={handleBackToDashboard} />
+        <ChatInterface 
+          agent={selectedAgent} 
+          agents={agents}
+          onBack={handleBackToDashboard}
+          onSwitchAgent={handleSwitchAgent}
+        />
       </div>
     );
   }
@@ -194,12 +234,18 @@ const Index = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
                   NeuralForge
                 </h1>
-                <p className="text-gray-400 dark:text-gray-400 light:text-gray-600 text-sm">Advanced AI Agent Development Platform</p>
+                <p className="text-gray-400 dark:text-gray-400 light:text-gray-600 text-sm">
+                  Advanced AI Agent Development Platform
+                  {isNative && (
+                    <Badge variant="secondary" className="ml-2 text-xs bg-blue-900/50 text-blue-300">
+                      Mobile App
+                    </Badge>
+                  )}
+                </p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Credits Display */}
               <div className="flex items-center space-x-2 bg-purple-900/50 dark:bg-purple-900/50 light:bg-purple-100 px-3 py-2 rounded-lg">
                 <Zap className="w-4 h-4 text-yellow-400" />
                 <span className="text-white dark:text-white light:text-gray-900 font-medium">{credits}</span>

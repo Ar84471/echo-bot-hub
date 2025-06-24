@@ -6,9 +6,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { saveChatSession, loadChatSession } from '@/utils/storage';
-import { generateAIResponse, getTypingDelay } from '@/utils/aiResponses';
+import { generateAIResponse } from '@/utils/aiResponses';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 import { searchWeb, generateEnhancedResponse } from '@/utils/informationRetrieval';
+import { useMobileFeatures } from '@/hooks/useMobileFeatures';
+import MobileChatInterface from './MobileChatInterface';
 
 interface Agent {
   id: string;
@@ -31,16 +33,24 @@ interface Message {
 
 interface ChatInterfaceProps {
   agent: Agent;
+  agents?: Agent[];
   onBack: () => void;
+  onSwitchAgent?: (agent: Agent) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
+  agent, 
+  agents = [], 
+  onBack, 
+  onSwitchAgent 
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { isNative, isOffline, saveOfflineData } = useMobileFeatures();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,21 +61,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   }, [messages]);
 
   useEffect(() => {
-    // Add entrance animation delay
     const timer = setTimeout(() => setIsLoaded(true), 150);
     
-    // Load existing chat session or create initial greeting
     const existingSession = loadChatSession(agent.id);
     
     if (existingSession && existingSession.messages.length > 0) {
-      // Convert string dates back to Date objects
       const messagesWithDates = existingSession.messages.map(msg => ({
         ...msg,
         timestamp: new Date(msg.timestamp)
       }));
       setMessages(messagesWithDates);
     } else {
-      // Create initial greeting message
       const greetingMessage: Message = {
         id: '1',
         text: generateAIResponse(agent, '', true),
@@ -75,7 +81,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       };
       setMessages([greetingMessage]);
       
-      // Save initial session
       saveChatSession({
         agentId: agent.id,
         messages: [greetingMessage],
@@ -95,7 +100,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
   };
 
   const [isSearching, setIsSearching] = useState(false);
-  const [useWebSearch, setUseWebSearch] = useState(true); // Default to true for web search
+  const [useWebSearch, setUseWebSearch] = useState(true);
   
   const {
     isRecording,
@@ -106,13 +111,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     error: recordingError
   } = useAudioRecording();
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isTyping) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputMessage.trim();
+    if (!textToSend || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage.trim(),
+      text: textToSend,
       sender: 'user',
       timestamp: new Date(),
       agentId: agent.id
@@ -120,20 +125,41 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setInputMessage('');
+    if (!messageText) setInputMessage('');
     setIsTyping(true);
 
-    // Save user message immediately
     saveCurrentSession(newMessages);
+
+    // Handle offline mode
+    if (isOffline) {
+      await saveOfflineData(`pending_message_${Date.now()}`, {
+        text: textToSend,
+        agentId: agent.id,
+        timestamp: new Date()
+      });
+      
+      const offlineMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm currently offline, but I'll respond as soon as I'm back online. Your message has been saved.",
+        sender: 'agent',
+        timestamp: new Date(),
+        agentId: agent.id
+      };
+      
+      const finalMessages = [...newMessages, offlineMessage];
+      setMessages(finalMessages);
+      setIsTyping(false);
+      saveCurrentSession(finalMessages);
+      return;
+    }
 
     try {
       let aiResponseText: string;
       
-      // Always search web for real information
       setIsSearching(true);
-      const searchResults = await searchWeb(userMessage.text);
+      const searchResults = await searchWeb(textToSend);
       setIsSearching(false);
-      aiResponseText = await generateEnhancedResponse(userMessage.text, agent, searchResults);
+      aiResponseText = await generateEnhancedResponse(textToSend, agent, searchResults);
 
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -147,7 +173,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       setMessages(finalMessages);
       setIsTyping(false);
       
-      // Save complete conversation
       saveCurrentSession(finalMessages);
       
     } catch (error) {
@@ -155,7 +180,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       setIsTyping(false);
       setIsSearching(false);
       
-      // Provide fallback response
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I apologize, but I'm having trouble processing your request right now. Please try again with a different question or check your internet connection.",
@@ -176,11 +200,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     }
   };
 
+  // Use mobile interface if on native platform or small screen
+  if (isNative || window.innerWidth < 768) {
+    return (
+      <MobileChatInterface
+        agent={agent}
+        agents={agents}
+        messages={messages}
+        onBack={onBack}
+        onSwitchAgent={onSwitchAgent || (() => {})}
+        onSendMessage={handleSendMessage}
+      />
+    );
+  }
+
   const handleVoiceRecording = async () => {
     if (isRecording) {
       const audioBlob = await stopRecording();
       if (audioBlob) {
-        // In a real implementation, you'd convert speech to text here
         toast({
           title: "Recording Complete",
           description: "Voice message recorded successfully. Speech-to-text conversion would happen here.",
@@ -234,6 +271,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
     });
   };
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSendMessage();
+  };
+
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col transition-all duration-500 ease-in-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       {/* Header */}
@@ -271,7 +313,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
             </div>
 
             <div className="flex items-center space-x-2">
-              {/* Enhanced Controls */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -377,7 +418,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
       <div className="bg-black/90 backdrop-blur-sm border-t border-purple-500/20 p-4">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
-            {/* Recording Status */}
             {isRecording && (
               <div className="mb-3 flex items-center justify-center space-x-2 text-red-400">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -391,7 +431,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ agent, onBack }) => {
               </div>
             )}
 
-            <form onSubmit={handleSendMessage} className="flex space-x-3">
+            <form onSubmit={handleFormSubmit} className="flex space-x-3">
               <div className="flex-1 relative">
                 <Input
                   value={inputMessage}
