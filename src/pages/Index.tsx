@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageCircle, Settings, Trash2, Bot, Sparkles, Menu, Zap, CreditCard } from 'lucide-react';
+import { Plus, MessageCircle, Settings, Trash2, Bot, Sparkles, Menu, Zap, CreditCard, Store, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,10 @@ import CreateAgentModal from '@/components/CreateAgentModal';
 import ChatInterface from '@/components/ChatInterface';
 import SettingsPanel from '@/components/SettingsPanel';
 import AgentSidebar from '@/components/AgentSidebar';
+import OnboardingModal from '@/components/OnboardingModal';
+import Marketplace from '@/pages/Marketplace';
 import { loadAgents, saveAgents, updateAgentLastUsed } from '@/utils/storage';
+import { AgentTemplate } from '@/data/agentTemplates';
 
 interface Agent {
   id: string;
@@ -29,9 +31,11 @@ const Index = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAgentSidebar, setShowAgentSidebar] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
   const { credits, subscriptionTier, useCredits } = useSubscription();
@@ -39,6 +43,12 @@ const Index = () => {
   useEffect(() => {
     const loadedAgents = loadAgents();
     setAgents(loadedAgents);
+    
+    // Show onboarding for new users
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (!hasSeenOnboarding && loadedAgents.length === 0) {
+      setShowOnboarding(true);
+    }
   }, []);
 
   const handleCreateAgent = (newAgent: Omit<Agent, 'id' | 'lastUsed'>) => {
@@ -58,6 +68,29 @@ const Index = () => {
     });
   };
 
+  const handleCreateFromTemplate = (template: AgentTemplate) => {
+    const agent: Agent = {
+      id: Date.now().toString(),
+      name: template.name,
+      description: template.description,
+      type: template.type,
+      avatar: template.avatar,
+      capabilities: template.capabilities,
+      isActive: true,
+      lastUsed: 'Just created'
+    };
+    
+    const updatedAgents = [...agents, agent];
+    setAgents(updatedAgents);
+    saveAgents(updatedAgents);
+    setShowMarketplace(false);
+    
+    toast({
+      title: "Agent Created from Template",
+      description: `${agent.name} has been deployed successfully.`,
+    });
+  };
+
   const handleDeleteAgent = (agentId: string) => {
     const agentToDelete = agents.find(a => a.id === agentId);
     const updatedAgents = agents.filter(agent => agent.id !== agentId);
@@ -74,7 +107,6 @@ const Index = () => {
   };
 
   const handleChatWithAgent = async (agent: Agent) => {
-    // Check if user has enough credits
     if (!useCredits(1)) {
       toast({
         title: "Insufficient Credits",
@@ -87,7 +119,6 @@ const Index = () => {
     setIsTransitioning(true);
     updateAgentLastUsed(agent.id);
     
-    // Update local state immediately
     setAgents(prevAgents => 
       prevAgents.map(a => 
         a.id === agent.id 
@@ -96,7 +127,6 @@ const Index = () => {
       )
     );
     
-    // Add a small delay for smooth transition
     await new Promise(resolve => setTimeout(resolve, 300));
     
     setSelectedAgent(agent);
@@ -106,26 +136,38 @@ const Index = () => {
 
   const handleBackToDashboard = async () => {
     setIsTransitioning(true);
-    
-    // Add transition delay
     await new Promise(resolve => setTimeout(resolve, 200));
     
     setShowChat(false);
+    setShowMarketplace(false);
     setSelectedAgent(null);
     setIsTransitioning(false);
     
-    // Reload agents to reflect any changes
     const updatedAgents = loadAgents();
     setAgents(updatedAgents);
   };
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    setShowOnboarding(false);
+    setShowMarketplace(true);
+  };
+
   const activeAgents = agents.filter(a => a.isActive).length;
-  const totalSessions = agents.reduce((acc, agent) => acc + (agent.isActive ? 1 : 0), 0) * 3; // Simulate sessions
+  const totalSessions = agents.reduce((acc, agent) => acc + (agent.isActive ? 1 : 0), 0) * 3;
 
   if (showChat && selectedAgent) {
     return (
       <div className={`transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
         <ChatInterface agent={selectedAgent} onBack={handleBackToDashboard} />
+      </div>
+    );
+  }
+
+  if (showMarketplace) {
+    return (
+      <div className={`transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <Marketplace onBack={handleBackToDashboard} onCreateFromTemplate={handleCreateFromTemplate} />
       </div>
     );
   }
@@ -169,6 +211,25 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowMarketplace(true)}
+                className="border-purple-500/30"
+              >
+                <Store className="w-4 h-4 mr-2" />
+                Marketplace
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowOnboarding(true)}
+                className="border-purple-500/30"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowSettings(true)}
                 className="border-purple-500/30"
               >
@@ -198,6 +259,40 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
+        {/* Quick Start Section for New Users */}
+        {agents.length === 0 && (
+          <div className="mb-8">
+            <Card className="bg-gradient-to-r from-purple-900/50 to-violet-900/50 backdrop-blur-sm border-purple-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Welcome to NeuralForge!</h3>
+                    <p className="text-gray-300 mb-4">Get started by exploring our agent marketplace or creating your first custom agent.</p>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => setShowMarketplace(true)}
+                        className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
+                      >
+                        <Store className="w-4 h-4 mr-2" />
+                        Explore Marketplace
+                      </Button>
+                      <Button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        variant="outline"
+                        className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Custom Agent
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-4xl">🚀</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-fade-in">
           <Card className="bg-gray-800/70 dark:bg-gray-800/70 light:bg-white/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 dark:hover:bg-gray-800/80 light:hover:bg-white/80 transition-all duration-200 hover:scale-105">
@@ -252,103 +347,115 @@ const Index = () => {
         </div>
 
         {/* Agents Grid */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white dark:text-white light:text-gray-900">Deployed AI Agents</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAgentSidebar(true)}
-              className="lg:hidden border-purple-500/30"
-            >
-              <Menu className="w-4 h-4 mr-2" />
-              Quick Select
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agents.map((agent, index) => (
-              <Card 
-                key={agent.id} 
-                className="bg-gray-800/70 dark:bg-gray-800/70 light:bg-white/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 dark:hover:bg-gray-800/80 light:hover:bg-white/80 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:scale-105 animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
+        {agents.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white dark:text-white light:text-gray-900">Deployed AI Agents</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAgentSidebar(true)}
+                className="lg:hidden border-purple-500/30"
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{agent.avatar}</div>
-                      <div>
-                        <CardTitle className="text-lg text-white dark:text-white light:text-gray-900">{agent.name}</CardTitle>
-                        <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
-                          {agent.type}
-                        </Badge>
+                <Menu className="w-4 h-4 mr-2" />
+                Quick Select
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agents.map((agent, index) => (
+                <Card 
+                  key={agent.id} 
+                  className="bg-gray-800/70 dark:bg-gray-800/70 light:bg-white/70 backdrop-blur-sm border-purple-500/20 hover:bg-gray-800/80 dark:hover:bg-gray-800/80 light:hover:bg-white/80 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:scale-105 animate-fade-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{agent.avatar}</div>
+                        <div>
+                          <CardTitle className="text-lg text-white dark:text-white light:text-gray-900">{agent.name}</CardTitle>
+                          <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
+                            {agent.type}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
+                        <span className="text-xs text-gray-400">{agent.isActive ? 'Online' : 'Offline'}</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400' : 'bg-gray-500'}`}></div>
-                      <span className="text-xs text-gray-400">{agent.isActive ? 'Online' : 'Offline'}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-gray-300 dark:text-gray-300 light:text-gray-600 mb-4">
+                      {agent.description}
+                    </CardDescription>
+                    
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-500 mb-2">Neural Capabilities:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {agent.capabilities.map((capability, index) => (
+                          <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                            {capability}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-300 dark:text-gray-300 light:text-gray-600 mb-4">
-                    {agent.description}
-                  </CardDescription>
-                  
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-500 mb-2">Neural Capabilities:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.capabilities.map((capability, index) => (
-                        <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
-                          {capability}
-                        </Badge>
-                      ))}
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-400 light:text-gray-500 mb-4">
+                      <span>Last neural sync: {agent.lastUsed}</span>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-400 light:text-gray-500 mb-4">
-                    <span>Last neural sync: {agent.lastUsed}</span>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Button 
-                      onClick={() => handleChatWithAgent(agent)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
-                      size="sm"
-                      disabled={isTransitioning}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      Neural Link
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-all duration-200">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      onClick={() => handleDeleteAgent(agent.id)}
-                      variant="outline" 
-                      size="sm" 
-                      className="border-red-500/30 text-red-400 hover:bg-red-900/50 transition-all duration-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => handleChatWithAgent(agent)}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
+                        size="sm"
+                        disabled={isTransitioning}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        Neural Link
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-all duration-200">
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        onClick={() => handleDeleteAgent(agent.id)}
+                        variant="outline" 
+                        size="sm" 
+                        className="border-red-500/30 text-red-400 hover:bg-red-900/50 transition-all duration-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {agents.length === 0 && (
           <div className="text-center py-12 animate-fade-in">
             <Bot className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-300 dark:text-gray-300 light:text-gray-700 mb-2">No agents deployed</h3>
             <p className="text-gray-500 dark:text-gray-500 light:text-gray-600 mb-6">Deploy your first AI agent to begin neural processing</p>
-            <Button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Deploy First Agent
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={() => setShowMarketplace(true)}
+                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white transition-all duration-200 hover:scale-105"
+              >
+                <Store className="w-4 h-4 mr-2" />
+                Browse Templates
+              </Button>
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)}
+                variant="outline"
+                className="border-purple-500/30 text-purple-300 hover:bg-purple-900/50 transition-all duration-200"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Custom
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -357,6 +464,12 @@ const Index = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreateAgent={handleCreateAgent}
+      />
+
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={handleOnboardingComplete}
       />
 
       <SettingsPanel 
