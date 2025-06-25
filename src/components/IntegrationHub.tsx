@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus, Settings, Zap, Code, Webhook } from 'lucide-react';
+import { Plus, Settings, Zap, Code, Webhook, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +10,11 @@ import IntegrationCard from './IntegrationCard';
 import AutomationBuilder from './AutomationBuilder';
 import APIPlayground from './APIPlayground';
 import WebhookManager from './WebhookManager';
+import NotionIntegration from './NotionIntegration';
 
 const IntegrationHub: React.FC = () => {
   const [connectedIntegrations, setConnectedIntegrations] = useState<Integration[]>([]);
+  const [isNotionConnected, setIsNotionConnected] = useState(false);
 
   const handleConnect = (integration: Integration) => {
     console.log('Connecting to:', integration.name);
@@ -24,6 +25,14 @@ const IntegrationHub: React.FC = () => {
 
   const handleDisconnect = (integrationId: string) => {
     setConnectedIntegrations(prev => prev.filter(i => i.id !== integrationId));
+  };
+
+  const handleNotionConnect = () => {
+    setIsNotionConnected(true);
+    const notionIntegration = availableIntegrations.find(i => i.id === 'notion');
+    if (notionIntegration) {
+      handleConnect({ ...notionIntegration, isConnected: true });
+    }
   };
 
   const productivityIntegrations = availableIntegrations.filter(i => i.category === 'productivity');
@@ -48,17 +57,17 @@ const IntegrationHub: React.FC = () => {
             <Plus className="w-4 h-4" />
             Integrations
           </TabsTrigger>
+          <TabsTrigger value="notion" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Notion
+          </TabsTrigger>
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="w-4 h-4" />
             Automation
           </TabsTrigger>
           <TabsTrigger value="api" className="flex items-center gap-2">
             <Code className="w-4 h-4" />
-            API Playground
-          </TabsTrigger>
-          <TabsTrigger value="webhooks" className="flex items-center gap-2">
-            <Webhook className="w-4 h-4" />
-            Webhooks
+            API & Webhooks
           </TabsTrigger>
         </TabsList>
 
@@ -149,15 +158,19 @@ const IntegrationHub: React.FC = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="notion" className="space-y-6">
+          <NotionIntegration 
+            onConnect={handleNotionConnect}
+            isConnected={isNotionConnected}
+          />
+        </TabsContent>
+
         <TabsContent value="automation">
           <AutomationBuilder connectedIntegrations={connectedIntegrations} />
         </TabsContent>
 
-        <TabsContent value="api">
+        <TabsContent value="api" className="space-y-6">
           <APIPlayground />
-        </TabsContent>
-
-        <TabsContent value="webhooks">
           <WebhookManager />
         </TabsContent>
       </Tabs>

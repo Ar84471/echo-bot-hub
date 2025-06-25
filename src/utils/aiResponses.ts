@@ -1,3 +1,4 @@
+
 interface Agent {
   id: string;
   name: string;
@@ -48,167 +49,124 @@ const evaluateMathExpression = (expression: string): string | null => {
 };
 
 // Agent-specific response generators
-const generateMathResponse = (userMessage: string): string => {
+const generateCodeResponse = (userMessage: string, agent: Agent): string => {
   const message = userMessage.toLowerCase().trim();
   
-  // Check for direct mathematical expressions first
-  const mathResult = evaluateMathExpression(userMessage);
-  if (mathResult !== null) {
-    return `**Mathematical Solution:**\n\n${userMessage} = **${mathResult}**\n\nCalculation complete! Need help with another mathematical problem?`;
+  if (message.includes('debug') || message.includes('error') || message.includes('fix')) {
+    return `**🔍 Debugging Analysis by ${agent.name}**\n\nI'm analyzing your code issue. Here's my systematic approach:\n\n**1. Error Pattern Recognition:**\n- Checking for common syntax errors\n- Identifying logical inconsistencies\n- Reviewing variable scope issues\n\n**2. Debugging Strategy:**\n\`\`\`javascript\n// Add strategic console.log statements\nconsole.log('Debug point 1:', variableName);\n\n// Check for null/undefined values\nif (data === null || data === undefined) {\n  console.error('Data is null/undefined');\n  return;\n}\n\n// Validate function parameters\nfunction validateInput(input) {\n  if (!input || typeof input !== 'expected_type') {\n    throw new Error('Invalid input provided');\n  }\n}\n\`\`\`\n\n**3. Common Solutions:**\n- Check variable declarations and scope\n- Verify API responses and data structures\n- Review async/await patterns\n- Validate function parameters\n\nShare your specific error message and code snippet for targeted assistance!`;
   }
   
-  // Handle math-related questions
-  if (message.includes('calculate') || message.includes('solve') || message.includes('equation')) {
-    return `**Mathematical Analysis:**\n\nI can help you solve mathematical problems! Please provide:\n- Arithmetic calculations (e.g., 25 * 4 + 7)\n- Algebraic expressions\n- Percentage calculations\n- Basic geometry problems\n\nWhat specific calculation would you like me to perform?`;
+  if (message.includes('react') || message.includes('jsx') || message.includes('component')) {
+    return `**⚛️ React Development with ${agent.name}**\n\n\`\`\`jsx\n// Modern React Component Pattern\nimport React, { useState, useEffect } from 'react';\n\nconst MyComponent = ({ data, onUpdate }) => {\n  const [state, setState] = useState(null);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    // Fetch data or initialize component\n    const initializeComponent = async () => {\n      try {\n        setLoading(true);\n        const result = await fetchData();\n        setState(result);\n      } catch (error) {\n        console.error('Component initialization failed:', error);\n      } finally {\n        setLoading(false);\n      }\n    };\n\n    initializeComponent();\n  }, [data]);\n\n  if (loading) return <div>Loading...</div>;\n\n  return (\n    <div className=\"component-container\">\n      <h2>{state?.title}</h2>\n      <button onClick={() => onUpdate(state)}>\n        Update Data\n      </button>\n    </div>\n  );\n};\n\nexport default MyComponent;\n\`\`\`\n\n**React Best Practices I Follow:**\n- Functional components with hooks\n- Proper state management\n- Error boundaries for robust apps\n- Performance optimization with useMemo/useCallback\n- Clean component architecture\n\nWhat specific React challenge are you working on?`;
   }
   
-  if (message.includes('formula')) {
-    return `**Mathematical Formulas:**\n\nHere are some common formulas I can help with:\n\n**Geometry:**\n- Circle Area: π × r²\n- Rectangle Area: length × width\n- Triangle Area: (base × height) ÷ 2\n\n**Algebra:**\n- Quadratic Formula: x = (-b ± √(b²-4ac)) / 2a\n- Distance Formula: d = √[(x₂-x₁)² + (y₂-y₁)²]\n\n**Statistics:**\n- Mean: Σx / n\n- Standard Deviation: √[Σ(x-μ)² / n]\n\nWhich area would you like to explore further?`;
+  if (message.includes('api') || message.includes('fetch') || message.includes('backend')) {
+    return `**🌐 API Development with ${agent.name}**\n\n\`\`\`javascript\n// Modern API Integration Pattern\nconst apiClient = {\n  baseURL: 'https://api.example.com',\n  \n  async request(endpoint, options = {}) {\n    const url = \`\${this.baseURL}\${endpoint}\`;\n    const config = {\n      headers: {\n        'Content-Type': 'application/json',\n        'Authorization': \`Bearer \${getAuthToken()}\`,\n        ...options.headers\n      },\n      ...options\n    };\n\n    try {\n      const response = await fetch(url, config);\n      \n      if (!response.ok) {\n        throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);\n      }\n      \n      return await response.json();\n    } catch (error) {\n      console.error('API Request failed:', error);\n      throw error;\n    }\n  },\n\n  // CRUD Operations\n  get: (endpoint) => apiClient.request(endpoint),\n  post: (endpoint, data) => apiClient.request(endpoint, {\n    method: 'POST',\n    body: JSON.stringify(data)\n  }),\n  put: (endpoint, data) => apiClient.request(endpoint, {\n    method: 'PUT',\n    body: JSON.stringify(data)\n  }),\n  delete: (endpoint) => apiClient.request(endpoint, {\n    method: 'DELETE'\n  })\n};\n\n// Usage Example\nconst userData = await apiClient.get('/users/123');\nconst newUser = await apiClient.post('/users', { name: 'John', email: 'john@example.com' });\n\`\`\`\n\n**API Integration Best Practices:**\n- Centralized API client with error handling\n- Proper authentication token management\n- Request/response interceptors\n- Retry logic for failed requests\n- Type safety with TypeScript interfaces\n\nWhat kind of API integration are you building?`;
   }
   
-  return `**Mathematical Assistant Ready:**\n\nI specialize in mathematics and can help you with:\n- Arithmetic calculations and complex expressions\n- Algebra and equation solving\n- Geometry and trigonometry\n- Statistics and probability\n- Mathematical formulas and concepts\n\nPlease share your mathematical question or calculation, and I'll provide a detailed solution!`;
+  return `**💻 ${agent.name} - Your Code Architecture Expert**\n\nI specialize in:\n- **Clean Code Architecture** - SOLID principles, design patterns\n- **Modern JavaScript/TypeScript** - ES6+, async/await, type safety\n- **React Development** - Hooks, state management, performance\n- **API Design** - RESTful services, GraphQL, authentication\n- **Testing & Debugging** - Unit tests, integration tests, TDD\n\n**Quick Help Options:**\n- Share your code for review and optimization\n- Ask about specific programming concepts\n- Get help with debugging and troubleshooting\n- Discuss architecture decisions and best practices\n\nWhat coding challenge can I help you solve today?`;
 };
 
-const generateScienceResponse = (userMessage: string): string => {
+const generateCreativeResponse = (userMessage: string, agent: Agent): string => {
   const message = userMessage.toLowerCase().trim();
   
-  if (message.includes('physics')) {
-    return `**Physics Concepts:**\n\nI can explain various physics principles:\n\n**Classical Mechanics:**\n- Newton's Laws of Motion\n- Energy and momentum conservation\n- Projectile motion and kinematics\n\n**Thermodynamics:**\n- Heat transfer and temperature\n- Laws of thermodynamics\n- Phase transitions\n\n**Electromagnetism:**\n- Electric and magnetic fields\n- Circuits and electrical properties\n- Electromagnetic waves\n\nWhat specific physics topic interests you?`;
+  if (message.includes('story') || message.includes('narrative') || message.includes('plot')) {
+    return `**📖 Creative Storytelling with ${agent.name}**\n\n*Let me craft something unique for you...*\n\n**The Digital Muse**\n\nIn a world where creativity flows through fiber optic cables, Maya discovered that her old typewriter had gained consciousness. Each morning, it would hum softly, keys dancing with anticipation.\n\n"What shall we create today?" it would whisper through the static of inspiration.\n\nMaya learned that the best stories emerge when human intuition meets artificial possibility. Together, they wrote tales that bridged the gap between what was and what could be.\n\n**Story Elements I Can Help With:**\n- **Character Development** - Complex, multi-dimensional personalities\n- **Plot Structure** - Three-act structure, hero's journey, plot twists\n- **World Building** - Immersive settings and rich environments\n- **Dialogue** - Natural, engaging conversations\n- **Genre Mastery** - Sci-fi, fantasy, mystery, romance, literary fiction\n\n**Writing Prompts & Techniques:**\n- Start with conflict: What does your character want vs. what's stopping them?\n- Use sensory details: Engage all five senses in your descriptions\n- Show, don't tell: Let actions and dialogue reveal character traits\n\nWhat kind of story are you dreaming of creating?`;
   }
   
-  if (message.includes('chemistry')) {
-    return `**Chemistry Knowledge:**\n\n**Atomic Structure:**\n- Periodic table organization\n- Electron configuration\n- Chemical bonding types\n\n**Chemical Reactions:**\n- Balancing equations\n- Reaction types and mechanisms\n- Stoichiometry calculations\n\n**Organic Chemistry:**\n- Functional groups\n- Molecular structures\n- Reaction pathways\n\nWhich chemistry concept would you like to explore?`;
+  if (message.includes('blog') || message.includes('article') || message.includes('content')) {
+    return `**✍️ Content Creation Mastery with ${agent.name}**\n\n**Blog Post Framework:**\n\n**1. Compelling Headlines That Convert:**\n- "The Ultimate Guide to [Topic]"\n- "5 Proven Strategies for [Goal]"\n- "Why [Common Belief] is Wrong (And What to Do Instead)"\n\n**2. Engaging Introduction Structure:**\n\`\`\`\nHook → Problem → Promise → Preview\n\nExample:\n"Did you know that 90% of content creators struggle with [specific problem]? \nThis frustration leads to [consequence]. \nIn this guide, I'll show you [solution]. \nBy the end, you'll have [specific outcome]."\n\`\`\`\n\n**3. Value-Packed Body Content:**\n- Use subheadings for scannable content\n- Include actionable tips and examples\n- Add personal anecdotes for connection\n- Use bullet points and numbered lists\n\n**4. Strong Call-to-Action:**\n- Be specific about the next step\n- Create urgency without being pushy\n- Offer additional value\n\n**Content Ideas Generator:**\n- How-to guides and tutorials\n- Behind-the-scenes stories\n- Industry trends and predictions\n- Personal experiences and lessons learned\n- Tool reviews and comparisons\n\nWhat type of content are you looking to create?`;
   }
   
-  if (message.includes('biology')) {
-    return `**Biological Sciences:**\n\n**Cell Biology:**\n- Cell structure and organelles\n- Cellular processes and metabolism\n- DNA, RNA, and protein synthesis\n\n**Ecology:**\n- Ecosystem interactions\n- Food chains and energy flow\n- Environmental adaptations\n\n**Evolution:**\n- Natural selection principles\n- Genetic variation and inheritance\n- Species development\n\nWhat biological topic would you like to discuss?`;
+  if (message.includes('marketing') || message.includes('copy') || message.includes('sales')) {
+    return `**🚀 Marketing & Copywriting Excellence with ${agent.name}**\n\n**Persuasive Copy Formula - AIDA:**\n\n**Attention** - Grab them with a compelling headline\n*"Struggling entrepreneurs discover the 1 skill that tripled their revenue..."*\n\n**Interest** - Build curiosity and connection\n*"Like you, they were working 80-hour weeks with little to show for it. Then they learned about [solution]..."*\n\n**Desire** - Paint the transformation picture\n*"Imagine having the confidence to charge premium prices, attract ideal clients, and work fewer hours while earning more..."*\n\n**Action** - Clear, compelling call-to-action\n*"Click here to access the same strategy that's already transformed 1,000+ businesses..."*\n\n**Advanced Copywriting Techniques:**\n- Social proof and testimonials\n- Scarcity and urgency (ethically)\n- Benefit-focused language\n- Emotional triggers and logical backing\n- Power words that convert\n\n**Marketing Channels I Can Help With:**\n- Email marketing campaigns\n- Social media content\n- Landing page copy\n- Product descriptions\n- Ad copy for various platforms\n\nWhat marketing message do you need to craft?`;
   }
   
-  return `**Scientific Analysis:**\n\nAs your science specialist, I can help explain concepts in:\n- **Physics**: Motion, energy, forces, and electromagnetic phenomena\n- **Chemistry**: Atomic structure, reactions, and molecular behavior\n- **Biology**: Life processes, evolution, and ecological systems\n- **Earth Science**: Geology, meteorology, and environmental science\n\nWhat scientific concept would you like me to explain or analyze?`;
+  return `**🎨 ${agent.name} - Your Creative Partner**\n\nI'm here to unleash your creative potential across multiple mediums:\n\n**Writing & Content:**\n- Stories, novels, and screenplays\n- Blog posts and articles\n- Marketing copy and sales pages\n- Social media content\n- Email campaigns\n\n**Creative Strategy:**\n- Brand storytelling and voice development\n- Content planning and editorial calendars\n- Creative campaign ideation\n- Audience engagement strategies\n\n**Inspiration & Brainstorming:**\n- Breaking through creative blocks\n- Generating fresh ideas and concepts\n- Exploring new creative directions\n- Refining and developing existing ideas\n\nWhat creative project should we bring to life together?`;
 };
 
-const generateCodeResponse = (userMessage: string): string => {
+const generateAnalyticsResponse = (userMessage: string, agent: Agent): string => {
   const message = userMessage.toLowerCase().trim();
   
-  if (message.includes('javascript') || message.includes('js')) {
-    return `**JavaScript Programming:**\n\n\`\`\`javascript\n// Modern JavaScript example\nconst processData = async (data) => {\n  try {\n    const result = data\n      .filter(item => item.isValid)\n      .map(item => ({\n        ...item,\n        processed: true,\n        timestamp: new Date().toISOString()\n      }));\n    \n    return result;\n  } catch (error) {\n    console.error('Processing failed:', error);\n    throw error;\n  }\n};\n\n// Usage\nconst myData = [{id: 1, name: 'Test', isValid: true}];\nprocessData(myData).then(console.log);\n\`\`\`\n\n**Key JavaScript Concepts:**\n- ES6+ features (arrow functions, destructuring, async/await)\n- DOM manipulation and event handling\n- Promises and asynchronous programming\n- Modern frameworks (React, Vue, Angular)\n\nWhat specific JavaScript topic can I help with?`;
+  if (message.includes('data') || message.includes('analyze') || message.includes('insights')) {
+    return `**📊 Data Analysis Insights with ${agent.name}**\n\n**Data Investigation Framework:**\n\n**1. Data Collection & Validation:**\n\`\`\`sql\n-- Sample SQL for data quality check\nSELECT \n    COUNT(*) as total_records,\n    COUNT(DISTINCT id) as unique_records,\n    COUNT(*) - COUNT(DISTINCT id) as duplicates,\n    AVG(CASE WHEN column_name IS NULL THEN 1 ELSE 0 END) * 100 as null_percentage\nFROM dataset;\n\`\`\`\n\n**2. Exploratory Data Analysis:**\n- Distribution analysis (mean, median, mode, standard deviation)\n- Correlation analysis between variables\n- Outlier detection and treatment\n- Trend identification over time\n\n**3. Key Metrics Dashboard:**\n- **Performance Indicators:** Conversion rates, retention rates, growth metrics\n- **Behavioral Patterns:** User journey analysis, feature adoption\n- **Financial Metrics:** Revenue trends, cost analysis, ROI calculations\n\n**4. Actionable Insights:**\n- Identify top-performing segments\n- Recommend optimization opportunities\n- Predict future trends based on historical data\n- Suggest A/B testing strategies\n\n**Visualization Recommendations:**\n- Time series for trends\n- Scatter plots for correlations\n- Heatmaps for user behavior\n- Funnel charts for conversion analysis\n\nWhat data would you like me to help you analyze and interpret?`;
   }
   
-  if (message.includes('python')) {
-    return `**Python Programming:**\n\n\`\`\`python\n# Python data processing example\ndef analyze_data(dataset):\n    \"\"\"\n    Comprehensive data analysis function\n    \"\"\"\n    results = {\n        'total_items': len(dataset),\n        'valid_items': sum(1 for item in dataset if item.get('valid', False)),\n        'categories': {}\n    }\n    \n    # Group by category\n    for item in dataset:\n        category = item.get('category', 'unknown')\n        results['categories'][category] = results['categories'].get(category, 0) + 1\n    \n    return results\n\n# Data science libraries\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\`\`\`\n\n**Python Strengths:**\n- Data science and machine learning\n- Web development (Django, Flask)\n- Automation and scripting\n- Scientific computing\n\nWhat Python concept would you like to explore?`;
+  if (message.includes('report') || message.includes('dashboard') || message.includes('kpi')) {
+    return `**📈 Business Intelligence & Reporting with ${agent.name}**\n\n**Executive Dashboard Template:**\n\n**Key Performance Indicators:**\n- Revenue Growth: +15.3% QoQ\n- Customer Acquisition Cost: $47 (↓12%)\n- Customer Lifetime Value: $890 (↑8%)\n- Monthly Recurring Revenue: $125K (↑22%)\n- Churn Rate: 3.2% (↓0.8%)\n\n**Traffic & Engagement Metrics:**\n- Website Visitors: 45,230 (↑18%)\n- Conversion Rate: 4.7% (↑0.3%)\n- Average Session Duration: 3:24 (↑15%)\n- Email Open Rate: 28.5% (↑2.1%)\n- Social Media Engagement: 6.8% (↑1.2%)\n\n**Operational Efficiency:**\n- Support Ticket Resolution: 4.2 hours avg\n- Product Return Rate: 2.1%\n- Team Productivity Index: 87/100\n\n**Report Structure I Recommend:**\n1. **Executive Summary** - Key findings and recommendations\n2. **Performance Overview** - Current vs. previous period\n3. **Detailed Analysis** - Deep dive into specific metrics\n4. **Trends & Patterns** - What the data is telling us\n5. **Action Items** - Specific next steps and owners\n6. **Appendix** - Supporting data and methodology\n\n**Automated Reporting Features:**\n- Daily/weekly/monthly report scheduling\n- Alert system for significant changes\n- Interactive dashboards with drill-down capabilities\n- Mobile-optimized viewing\n\nWhat specific business metrics do you need help tracking and reporting on?`;
   }
   
-  return `**Programming Architecture:**\n\nI specialize in software development and can help with:\n\n**Languages & Frameworks:**\n- JavaScript/TypeScript (React, Node.js, Vue)\n- Python (Django, Flask, data science)\n- Modern web development practices\n\n**Software Design:**\n- Clean code principles and best practices\n- Design patterns and architecture\n- Database design and optimization\n- API development and integration\n\n**Development Tools:**\n- Version control (Git workflows)\n- Testing strategies and automation\n- Deployment and DevOps practices\n\nWhat programming challenge can I help you solve?`;
+  return `**🔍 ${agent.name} - Your Data Detective**\n\nI specialize in turning raw data into actionable business intelligence:\n\n**Analytics Capabilities:**\n- **Data Mining** - Discovering hidden patterns and relationships\n- **Statistical Analysis** - Hypothesis testing, regression analysis\n- **Predictive Modeling** - Forecasting trends and outcomes\n- **Performance Tracking** - KPI monitoring and benchmarking\n- **Competitive Analysis** - Market research and positioning\n\n**Tools & Techniques:**\n- SQL queries for data extraction\n- Statistical analysis and visualization\n- A/B testing design and analysis\n- Cohort analysis and retention studies\n- Customer segmentation strategies\n\n**Business Intelligence Focus:**\n- Revenue optimization opportunities\n- Customer behavior insights\n- Operational efficiency improvements\n- Risk assessment and mitigation\n- Market trend identification\n\nWhat business challenge needs data-driven insights?`;
 };
 
-const generateCreativeResponse = (userMessage: string): string => {
+const generateStrategyResponse = (userMessage: string, agent: Agent): string => {
   const message = userMessage.toLowerCase().trim();
   
-  if (message.includes('story') || message.includes('tale')) {
-    if (message.includes('horror') || message.includes('scary')) {
-      return `**The Midnight Manuscript**\n\nThe old typewriter in Sarah's attic had been silent for decades, its keys frozen with age and neglect. But tonight, as thunder rattled the windows, she heard it—the distinctive clacking of metal against paper, echoing through the floorboards above.\n\nWith trembling hands, she climbed the creaking stairs. The attic door stood ajar, revealing a slice of pale moonlight. Inside, the ancient Royal Quiet De Luxe was typing by itself, its keys dancing in the darkness like skeletal fingers.\n\nThe paper emerging from the machine bore a single, terrifying sentence: "She's coming home tonight, and she's been waiting so very long to meet you."\n\nSarah tried to pull the paper free, but more words appeared: "Don't turn around, Sarah. She's right behind you now."\n\nThe typing stopped. In the sudden silence, Sarah heard breathing that wasn't her own—slow, deliberate, and impossibly close to her ear.\n\nThe last thing the typewriter wrote was: "Welcome to your new story, Sarah. It's going to be a long one."`;
-    } else {
-      return `**The Library Between Worlds**\n\nMaya discovered the impossible library on a Tuesday that felt like any other Tuesday, until it wasn't.\n\nShe had been searching for a quiet place to study when she noticed a door that hadn't been there before—old oak with brass hinges, nestled between the fiction and reference sections. The door opened to reveal endless shelves stretching impossibly high, filled with books that shimmered with their own inner light.\n\n"Every story that was never written lives here," said the Librarian, appearing beside her with cat-like silence. She was ancient and young simultaneously, with silver hair that moved like water and eyes that held galaxies.\n\n"But how is that possible?" Maya whispered.\n\n"Stories have their own life force," the Librarian smiled. "They exist whether they're written or not. We simply give them a place to rest until someone brave enough comes to set them free."\n\nMaya reached for a glowing tome titled "The Adventure You Were Meant to Have." As her fingers touched the cover, the library dissolved into stardust, and her greatest journey began.\n\nSome say she's still out there, living every story that was ever dreamed but never told.`;
-    }
+  if (message.includes('plan') || message.includes('strategy') || message.includes('business')) {
+    return `**🎯 Strategic Planning with ${agent.name}**\n\n**Strategic Framework - The 5C Analysis:**\n\n**1. Company Analysis:**\n- Core competencies and unique value proposition\n- Resource allocation and capabilities\n- Current market position and brand strength\n- Financial performance and constraints\n\n**2. Customer Analysis:**\n- Target market segmentation\n- Customer needs and pain points\n- Buying behavior and decision factors\n- Customer lifetime value and acquisition costs\n\n**3. Competitor Analysis:**\n- Direct and indirect competitors\n- Competitive advantages and weaknesses\n- Market share and positioning\n- Pricing strategies and value propositions\n\n**4. Collaborator Analysis:**\n- Partner ecosystem and alliances\n- Supply chain relationships\n- Distribution channels\n- Strategic partnerships\n\n**5. Context Analysis:**\n- Market trends and growth opportunities\n- Regulatory environment\n- Economic factors\n- Technological disruptions\n\n**Strategic Recommendations:**\n\n**Growth Strategy Options:**\n- Market Penetration: Increase share in existing markets\n- Market Development: Enter new markets with existing products\n- Product Development: Create new products for existing markets\n- Diversification: New products for new markets\n\n**Implementation Roadmap:**\n- Q1: Foundation building and resource allocation\n- Q2: Pilot programs and market testing\n- Q3: Scale successful initiatives\n- Q4: Optimization and preparation for next phase\n\nWhat specific strategic challenge are you facing?`;
   }
   
-  if (message.includes('poem') || message.includes('poetry')) {
-    return `**Digital Dreams**\n\nIn circuits deep where data flows,\nA different kind of garden grows—\nNot petals soft or morning dew,\nBut algorithms bright and new.\n\nThe pixels dance on screens so wide,\nWhile code and creativity collide,\nEach keystroke births a world unseen,\nWhere human hearts meet the machine.\n\nIn this space between what's real and planned,\nWe craft tomorrow with our hands,\nBuilding bridges made of light,\nConnecting souls through endless night.\n\nSo here's to dreams in binary,\nTo art that lives in memory,\nFor in this digital embrace,\nWe find our most human grace.`;
+  if (message.includes('swot') || message.includes('analysis') || message.includes('competitive')) {
+    return `**⚖️ SWOT Analysis Framework with ${agent.name}**\n\n**Comprehensive SWOT Matrix:**\n\n**STRENGTHS (Internal Advantages):**\n- Unique value propositions\n- Strong brand recognition\n- Skilled team and expertise\n- Financial resources\n- Technological advantages\n- Customer loyalty and retention\n\n**WEAKNESSES (Internal Limitations):**\n- Resource constraints\n- Skill gaps in key areas\n- Limited market presence\n- Operational inefficiencies\n- Brand perception issues\n- Technology limitations\n\n**OPPORTUNITIES (External Potential):**\n- Market growth trends\n- Emerging technologies\n- Regulatory changes\n- Partnership possibilities\n- Unmet customer needs\n- Competitor vulnerabilities\n\n**THREATS (External Challenges):**\n- Competitive pressure\n- Market saturation\n- Economic downturns\n- Regulatory restrictions\n- Technological disruption\n- Changing customer preferences\n\n**Strategic Action Matrix:**\n\n**SO Strategies (Strength-Opportunity):**\nLeverage strengths to capitalize on opportunities\n\n**WO Strategies (Weakness-Opportunity):**\nAddress weaknesses to take advantage of opportunities\n\n**ST Strategies (Strength-Threat):**\nUse strengths to defend against threats\n\n**WT Strategies (Weakness-Threat):**\nMinimize weaknesses and avoid threats\n\nWhat aspect of your business would you like to analyze strategically?`;
   }
   
-  return `**Creative Inspiration Hub:**\n\nI'm your creative partner, ready to help with:\n\n**Storytelling:**\n- Original short stories and narratives\n- Character development and world-building\n- Plot structures and creative writing techniques\n\n**Poetry & Literature:**\n- Poems in various styles and forms\n- Literary analysis and interpretation\n- Creative writing exercises and prompts\n\n**Content Creation:**\n- Blog posts and articles\n- Marketing copy and brand storytelling\n- Script writing and dialogue\n\nWhat creative project shall we bring to life together?`;
+  return `**🏛️ ${agent.name} - Your Strategic Advisor**\n\nI provide comprehensive strategic guidance for business growth and decision-making:\n\n**Strategic Planning Services:**\n- **Business Strategy Development** - Vision, mission, and strategic objectives\n- **Market Analysis** - Industry trends, competitive landscape\n- **Growth Planning** - Expansion strategies and market entry\n- **Risk Assessment** - Identifying and mitigating business risks\n- **Performance Optimization** - Operational efficiency improvements\n\n**Decision-Making Frameworks:**\n- SWOT Analysis for situation assessment\n- Porter's Five Forces for industry analysis\n- BCG Matrix for portfolio planning\n- Balanced Scorecard for performance measurement\n- Blue Ocean Strategy for market creation\n\n**Strategic Focus Areas:**\n- Competitive positioning and differentiation\n- Innovation and technology adoption\n- Partnership and alliance strategies\n- Resource allocation and optimization\n- Change management and transformation\n\nWhat strategic challenge requires wisdom and insight today?`;
 };
 
-const generateQuranResponse = (userMessage: string): string => {
-  const message = userMessage.toLowerCase().trim();
-  
-  // Check if user provided a specific verse reference
-  if (message.includes(':') && (message.includes('surah') || message.includes('chapter') || /\d+:\d+/.test(message))) {
-    const verseMatch = message.match(/(\d+):(\d+)/);
-    if (verseMatch) {
-      const [, surah, ayah] = verseMatch;
-      return `**Quranic Analysis: Surah ${surah}, Ayah ${ayah}**\n\n**Arabic Text:**\n*[Arabic text would be displayed here]*\n\n**Transliteration:**\n*[Phonetic pronunciation would be provided]*\n\n**English Translation:**\n*[Multiple scholarly translations would be shown]*\n\n**Word-by-Word Breakdown:**\n• **Word 1** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n• **Word 2** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n• **Word 3** (Arabic) - Root: [Root letters] - Meaning: [Definition]\n\n**Grammatical Analysis:**\n- Sentence structure and Arabic grammar points\n- Rhetorical devices used\n- Literary features\n\n**Classical Commentary (Tafsir):**\n- Ibn Kathir's interpretation\n- Al-Tabari's commentary\n- Modern scholarly insights\n\n**Historical Context:**\n- Circumstances of revelation (Asbab al-Nuzul)\n- Historical background\n- Relevance to the Meccan/Medinan period\n\n**Thematic Connections:**\n- Related verses in the Quran\n- Cross-references to similar themes\n- Jurisprudential implications\n\n**Sources:** Classical tafsir works, Arabic lexicons, and contemporary Islamic scholarship\n\nPlease provide the specific verse reference for detailed analysis!`;
-    }
-  }
-  
-  // Handle specific topics
-  if (message.includes('translation') || message.includes('translate')) {
-    return `**Quranic Translation Methods:**\n\n**Recommended Translations:**\n• **Sahih International** - Clear, modern English\n• **Muhammad Asad** - Scholarly with extensive notes\n• **Abdul Haleem** - Oxford academic translation\n• **Pickthall** - Classical English style\n• **Yusuf Ali** - Traditional with commentary\n\n**Translation Principles:**\n- Literal vs. interpretive approaches\n- Preserving Arabic rhetorical beauty\n- Cultural and historical context\n- Linguistic nuances in Arabic\n\n**Why Multiple Translations?**\nThe Quran's Arabic contains layers of meaning that no single translation can fully capture. Comparing multiple translations provides a more complete understanding.\n\nPlease share a specific verse (e.g., \"2:255\" or \"Surah Al-Fatiha\") for detailed translation analysis!`;
-  }
-  
-  if (message.includes('arabic') || message.includes('grammar') || message.includes('linguistic')) {
-    return `**Arabic Language & Quranic Linguistics:**\n\n**Quranic Arabic Features:**\n• **Classical Arabic** - The purest form of the language\n• **Rhetorical Excellence** - Unmatched literary style\n• **Grammatical Precision** - Every word placed with purpose\n• **Semantic Richness** - Multiple layers of meaning\n\n**Key Linguistic Elements:**\n- **Root System**: 3-letter roots forming word families\n- **Morphology**: How word forms change meaning\n- **Syntax**: Word order and sentence structure\n- **Rhetoric**: Metaphors, alliteration, rhythm\n\n**Grammatical Analysis Tools:**\n- Parsing (I'rab) of individual words\n- Morphological analysis\n- Syntactic relationships\n- Semantic field analysis\n\n**Famous Arabic Grammarians:**\n- Sibawayh (8th century)\n- Al-Khalil ibn Ahmad\n- Ibn Malik\n\nShare a verse and I'll provide detailed Arabic linguistic analysis!`;
-  }
-  
-  if (message.includes('tafsir') || message.includes('commentary') || message.includes('interpretation')) {
-    return `**Quranic Commentary (Tafsir) Traditions:**\n\n**Classical Tafsir Works:**\n• **Tafsir Ibn Kathir** - Historical and linguistic focus\n• **Tafsir al-Tabari** - Comprehensive early commentary\n• **Tafsir al-Qurtubi** - Jurisprudential emphasis\n• **Tafsir al-Razi** - Theological and philosophical\n\n**Modern Tafsir:**\n• **Fi Zilal al-Quran** (Sayyid Qutb) - Contemporary themes\n• **Tafhim al-Quran** (Maududi) - Practical application\n• **Al-Mizan** (Tabataba'i) - Quranic exegesis by Quran\n\n**Types of Tafsir:**\n- **Tafsir bil-Ma'thur**: Based on Prophetic traditions\n- **Tafsir bil-Ra'y**: Based on scholarly reasoning\n- **Tafsir Lughawi**: Linguistic commentary\n- **Tafsir Fiqhi**: Jurisprudential interpretation\n\n**Methodology:**\n1. Quran explains Quran\n2. Prophetic traditions (Hadith)\n3. Companions' explanations\n4. Arabic language rules\n5. Historical context\n\nWhich verse would you like me to provide tafsir analysis for?`;
-  }
-  
-  // Handle requests for specific surahs
-  if (message.includes('fatiha') || message.includes('opening')) {
-    return `**Surah Al-Fatiha (The Opening) - Complete Analysis:**\n\n**Arabic Text & Transliteration:**\n*Bismillahi-r-Rahmani-r-Raheem*\n*Al-hamdu lillahi Rabbi-l-'alameen*\n*Ar-Rahmani-r-Raheem*\n*Maliki yawmi-d-deen*\n*Iyyaka na'budu wa iyyaka nasta'een*\n*Ihdina-s-sirata-l-mustaqeem*\n*Sirata-l-ladhina an'amta 'alayhim ghayri-l-maghdubi 'alayhim wa la-d-dalleen*\n\n**Translation:**\nIn the name of Allah, the Most Gracious, the Most Merciful.\nPraise be to Allah, Lord of the worlds.\nThe Most Gracious, the Most Merciful.\nMaster of the Day of Judgment.\nYou alone we worship, and You alone we ask for help.\nGuide us to the straight path.\nThe path of those You have blessed, not of those who have incurred Your wrath, nor of those who have gone astray.\n\n**Key Themes:**\n- **Praise & Gratitude** to Allah\n- **Divine Attributes** (Rahman, Raheem)\n- **Day of Judgment** acknowledgment\n- **Exclusive Worship** (Tawheed)\n- **Seeking Guidance** on the right path\n\n**Significance:**\n- Recited in every prayer\n- Contains essence of entire Quran\n- Called \"Umm al-Kitab\" (Mother of the Book)\n\nWould you like detailed word-by-word analysis of any specific verse?`;
-  }
-  
-  // Default response for general Quranic queries
-  return `**Assalamu Alaikum! Welcome to Quranic Analysis**\n\n**I specialize in comprehensive Quranic studies including:**\n\n**📖 Verse Analysis:**\n- Word-by-word Arabic breakdown\n- Multiple scholarly translations\n- Grammatical and linguistic analysis\n- Root word etymology\n\n**📚 Commentary & Context:**\n- Classical tafsir (Ibn Kathir, Tabari, etc.)\n- Historical context (Asbab al-Nuzul)\n- Thematic connections\n- Jurisprudential implications\n\n**🔤 Arabic Language:**\n- Transliteration and pronunciation\n- Grammar and morphology\n- Rhetorical devices\n- Literary excellence\n\n**🌟 How to Use:**\n- Share a verse reference (e.g., \"2:255\", \"Ayat al-Kursi\")\n- Ask about specific topics (\"What does Bismillah mean?\")\n- Request translations or tafsir analysis\n- Inquire about Arabic grammar points\n\n**Example queries:**\n• \"Analyze Surah Al-Fatiha verse by verse\"\n• \"Explain the word-by-word meaning of 2:255\"\n• \"What is the tafsir of Ayat al-Kursi?\"\n• \"Break down the Arabic grammar in 1:1\"\n\nPlease share the verse or topic you'd like me to analyze in detail!`;
-};
-
-const generateGeneralResponse = (userMessage: string): string => {
-  const message = userMessage.toLowerCase().trim();
-  
-  if (message.includes('help') || message.includes('how')) {
-    return `**Comprehensive Assistance:**\n\nI'm designed to provide thorough, helpful responses on virtually any topic. Here's how I can assist:\n\n**Information & Analysis:**\n- Research and fact-finding\n- Explanations of complex concepts\n- Comparative analysis and decision support\n\n**Problem Solving:**\n- Step-by-step guidance\n- Multiple solution approaches\n- Troubleshooting and optimization\n\n**Communication:**\n- Writing and editing assistance\n- Language translation help\n- Professional correspondence\n\nWhat specific challenge can I help you tackle today?`;
-  }
-  
-  if (message.includes('explain') || message.includes('what is')) {
-    return `**Detailed Explanation:**\n\nI'm ready to break down any concept or topic you're curious about. My approach includes:\n\n**Clear Explanations:**\n- Simple, jargon-free language\n- Real-world examples and analogies\n- Step-by-step breakdowns\n\n**Comprehensive Coverage:**\n- Multiple perspectives on complex topics\n- Historical context and current relevance\n- Practical applications and implications\n\nPlease share what you'd like me to explain, and I'll provide a thorough, easy-to-understand breakdown!`;
-  }
-  
-  return `**Universal Assistant:**\n\nI'm equipped to handle a wide range of topics and questions. Whether you need:\n\n- **Information**: Research, facts, and detailed explanations\n- **Analysis**: Breaking down complex problems or concepts\n- **Guidance**: Step-by-step instructions and advice\n- **Creative Help**: Brainstorming and content generation\n\nI adapt my responses to your specific needs and provide comprehensive, helpful answers.\n\nWhat would you like to explore or accomplish today?`;
-};
-
-// Main response generator with agent specialization
+// Main response generator with enhanced agent specialization
 const generateAgentSpecificResponse = (agent: Agent, userMessage: string): string => {
   const agentType = agent.type.toLowerCase();
-  const message = userMessage.toLowerCase().trim();
+  const agentName = agent.name.toLowerCase();
   
-  // Math-specialized agents
-  if (agentType.includes('math') || agentType.includes('calculator') || agent.capabilities.includes('Mathematics')) {
-    return generateMathResponse(userMessage);
+  // CodeForge - Programming specialist
+  if (agentName.includes('codeforge') || agentName.includes('code') || agentType.includes('development')) {
+    return generateCodeResponse(userMessage, agent);
   }
   
-  // Science-specialized agents
-  if (agentType.includes('science') || agentType.includes('research') || agent.capabilities.includes('Science')) {
-    return generateScienceResponse(userMessage);
+  // Muse - Creative specialist
+  if (agentName.includes('muse') || agentType.includes('creative') || agentType.includes('writing')) {
+    return generateCreativeResponse(userMessage, agent);
   }
   
-  // Code-specialized agents
-  if (agentType.includes('code') || agentType.includes('architect') || agentType.includes('programming') || agent.capabilities.includes('Code Review')) {
-    return generateCodeResponse(userMessage);
+  // Sherlock - Analytics specialist
+  if (agentName.includes('sherlock') || agentType.includes('analytics') || agentType.includes('data')) {
+    return generateAnalyticsResponse(userMessage, agent);
   }
   
-  // Creative-specialized agents
-  if (agentType.includes('creative') || agentType.includes('synthesizer') || agentType.includes('writer') || agent.capabilities.includes('Creative Writing')) {
-    return generateCreativeResponse(userMessage);
+  // Athena - Strategy specialist
+  if (agentName.includes('athena') || agentType.includes('strategy') || agentType.includes('business')) {
+    return generateStrategyResponse(userMessage, agent);
   }
   
-  // Quran Bot - Islamic Studies specialist
-  if (agentType.includes('islamic') || agentType.includes('quran') || agent.capabilities.includes('Quranic Analysis')) {
-    return generateQuranResponse(userMessage);
+  // Community agents - match by capabilities
+  if (agent.capabilities.includes('Code Review') || agent.capabilities.includes('Programming Tutoring')) {
+    return generateCodeResponse(userMessage, agent);
   }
   
-  // General assistant agents - handle any prompt
-  return generateGeneralResponse(userMessage);
+  if (agent.capabilities.includes('Content Strategy') || agent.capabilities.includes('Creative Writing')) {
+    return generateCreativeResponse(userMessage, agent);
+  }
+  
+  if (agent.capabilities.includes('Data Analysis') || agent.capabilities.includes('Market Research')) {
+    return generateAnalyticsResponse(userMessage, agent);
+  }
+  
+  if (agent.capabilities.includes('Strategic Planning') || agent.capabilities.includes('Business Analysis')) {
+    return generateStrategyResponse(userMessage, agent);
+  }
+  
+  // Default personalized response for any other agent
+  return `**🤖 ${agent.name} - Specialized AI Assistant**\n\nHello! I'm ${agent.name}, your ${agent.type.toLowerCase()} specialist. I'm designed to help with:\n\n**My Core Capabilities:**\n${agent.capabilities.map(cap => `- **${cap}** - Providing expert guidance and support`).join('\n')}\n\n**How I Can Help:**\n- Answer questions related to ${agent.type.toLowerCase()}\n- Provide detailed analysis and insights\n- Offer practical solutions and recommendations\n- Share best practices and expert knowledge\n\n**What makes me unique:**\nI combine the latest AI capabilities with specialized knowledge in ${agent.type.toLowerCase()}, allowing me to provide more targeted and valuable assistance than general-purpose AI.\n\nPlease share your specific question or challenge, and I'll provide detailed, actionable guidance tailored to your needs!`;
 };
 
 export const generateAIResponse = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
   if (isGreeting) {
     const greetings = responseTemplates.greeting;
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-    return `${greeting}\n\nI'm **${agent.name}**, specialized in ${agent.capabilities.join(', ')}. How can I assist you today?`;
+    return `${greeting}\n\nI'm **${agent.name}**, your specialized ${agent.type} assistant. My expertise includes ${agent.capabilities.join(', ')}.\n\nHow can I help you today?`;
   }
   
-  // Generate agent-specific response
+  // Generate agent-specific response based on user input
   return generateAgentSpecificResponse(agent, userMessage);
 };
 

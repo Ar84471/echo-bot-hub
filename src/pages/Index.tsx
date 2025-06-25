@@ -13,7 +13,9 @@ import CreateAgentModal from "@/components/CreateAgentModal";
 import OnboardingModal from "@/components/OnboardingModal";
 import SettingsPanel from "@/components/SettingsPanel";
 import HomePage from "@/components/HomePage";
+import Marketplace from "@/components/Marketplace";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
+import { type CommunityAgent } from "@/data/communityAgents";
 
 // Mock data for agent templates
 const agentTemplates = [
@@ -154,6 +156,22 @@ const Index = () => {
     setActiveTab(tab);
   };
 
+  const handleInstallCommunityAgent = (communityAgent: CommunityAgent) => {
+    const newAgent: Agent = {
+      id: communityAgent.id,
+      name: communityAgent.name,
+      description: communityAgent.description,
+      type: communityAgent.type,
+      avatar: communityAgent.avatar,
+      isActive: true,
+      lastUsed: new Date().toISOString(),
+      capabilities: communityAgent.capabilities,
+    };
+    
+    setAgents([...agents, newAgent]);
+    setCurrentAgent(newAgent);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
       <header className="bg-gray-800/50 backdrop-blur-md sticky top-0 z-50">
@@ -207,8 +225,8 @@ const Index = () => {
               Dashboard
             </TabsTrigger>
             <TabsTrigger value="marketplace" className="data-[state=active]:bg-purple-600">
-              <Settings className="w-4 h-4 mr-2" />
-              More
+              <Smartphone className="w-4 h-4 mr-2" />
+              Marketplace
             </TabsTrigger>
           </TabsList>
 
@@ -351,20 +369,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="marketplace">
-            <Card className="bg-gray-800/50 border-purple-500/30">
-              <CardHeader>
-                <CardTitle className="text-white">Agent Marketplace</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Explore community-built AI Agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-white">
-                  Discover and install new AI Agents from our community
-                  marketplace.
-                </p>
-              </CardContent>
-            </Card>
+            <Marketplace onInstallAgent={handleInstallCommunityAgent} />
           </TabsContent>
 
           <TabsContent value="settings">
