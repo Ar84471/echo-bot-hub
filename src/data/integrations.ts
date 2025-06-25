@@ -2,25 +2,7 @@
 import { Integration } from '@/types/integrations';
 
 export const availableIntegrations: Integration[] = [
-  // Productivity Tools
-  {
-    id: 'google-workspace',
-    name: 'Google Workspace',
-    description: 'Connect Gmail, Drive, Calendar, and Docs',
-    icon: '📧',
-    category: 'productivity',
-    isConnected: false,
-    authUrl: 'https://accounts.google.com/oauth/authorize'
-  },
-  {
-    id: 'microsoft-365',
-    name: 'Microsoft 365',
-    description: 'Integrate with Outlook, OneDrive, and Teams',
-    icon: '🏢',
-    category: 'productivity',
-    isConnected: false,
-    authUrl: 'https://login.microsoftonline.com/oauth2/authorize'
-  },
+  // Working Productivity Tools
   {
     id: 'notion',
     name: 'Notion',
@@ -40,34 +22,15 @@ export const availableIntegrations: Integration[] = [
     authUrl: 'https://airtable.com/oauth2/v1/authorize'
   },
   
-  // Automation
+  // Working Communication Tools
   {
-    id: 'zapier',
-    name: 'Zapier',
-    description: 'Trigger Zapier workflows',
-    icon: '⚡',
-    category: 'automation',
-    isConnected: false
-  },
-  
-  // Social Media
-  {
-    id: 'twitter',
-    name: 'Twitter/X',
-    description: 'Post tweets and read mentions',
-    icon: '🐦',
+    id: 'slack',
+    name: 'Slack',
+    description: 'Post messages and manage channels',
+    icon: '💬',
     category: 'social',
     isConnected: false,
-    authUrl: 'https://api.twitter.com/oauth/authorize'
-  },
-  {
-    id: 'linkedin',
-    name: 'LinkedIn',
-    description: 'Share content and manage connections',
-    icon: '💼',
-    category: 'social',
-    isConnected: false,
-    authUrl: 'https://www.linkedin.com/oauth/v2/authorization'
+    authUrl: 'https://slack.com/oauth/v2/authorize'
   },
   {
     id: 'discord',
@@ -77,13 +40,22 @@ export const availableIntegrations: Integration[] = [
     category: 'social',
     isConnected: false
   },
+  
+  // Automation Tools
   {
-    id: 'slack',
-    name: 'Slack',
-    description: 'Post messages and manage channels',
-    icon: '💬',
-    category: 'social',
-    isConnected: false,
-    authUrl: 'https://slack.com/oauth/v2/authorize'
+    id: 'zapier',
+    name: 'Zapier',
+    description: 'Trigger Zapier workflows via webhooks',
+    icon: '⚡',
+    category: 'automation',
+    isConnected: false
+  },
+  {
+    id: 'make',
+    name: 'Make (Integromat)',
+    description: 'Create automated workflows and scenarios',
+    icon: '🔧',
+    category: 'automation',
+    isConnected: false
   }
 ];

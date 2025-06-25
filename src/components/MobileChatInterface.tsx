@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Send, Bot, Mic, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { generateAIResponse } from '@/utils/aiResponses';
 
 interface Agent {
   id: string;
@@ -44,11 +45,59 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   onSendMessage
 }) => {
   const [inputMessage, setInputMessage] = useState('');
+  const [localMessages, setLocalMessages] = useState<Message[]>(messages);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
-    onSendMessage(inputMessage);
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages]);
+
+  // Initialize with greeting if no messages
+  useEffect(() => {
+    if (agent && localMessages.length === 0) {
+      const greetingMessage: Message = {
+        id: '1',
+        text: generateAIResponse(agent, '', true),
+        sender: 'agent',
+        timestamp: new Date(),
+        agentId: agent.id
+      };
+      setLocalMessages([greetingMessage]);
+    }
+  }, [agent, localMessages.length]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !agent) return;
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputMessage,
+      sender: 'user',
+      timestamp: new Date(),
+      agentId: agent.id
+    };
+
+    setLocalMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setIsTyping(true);
+
+    // Call parent handler if provided, otherwise generate local response
+    if (onSendMessage) {
+      onSendMessage(inputMessage);
+    } else {
+      // Generate local AI response
+      setTimeout(() => {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: generateAIResponse(agent, inputMessage),
+          sender: 'agent',
+          timestamp: new Date(),
+          agentId: agent.id
+        };
+        setLocalMessages(prev => [...prev, aiResponse]);
+        setIsTyping(false);
+      }, 1000);
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -66,6 +115,8 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       </div>
     );
   }
+
+  const displayMessages = localMessages.length > 0 ? localMessages : messages;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col">
@@ -93,7 +144,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       {/* Messages */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.length === 0 && (
+          {displayMessages.length === 0 && (
             <div className="text-center py-8">
               <div className="text-4xl mb-4">{agent.avatar}</div>
               <h3 className="text-lg font-semibold text-white mb-2">
@@ -112,7 +163,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
             </div>
           )}
           
-          {messages.map((message) => (
+          {displayMessages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -145,6 +196,28 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               </div>
             </div>
           ))}
+
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="flex space-x-2 max-w-[80%]">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
+                  <Bot className="w-3 h-3 text-white" />
+                </div>
+                <Card className="p-3 bg-gray-800/70 backdrop-blur-sm border-purple-500/20">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {agent.name} is thinking...
+                    </span>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -158,6 +231,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               placeholder={`Message ${agent.name}...`}
               className="pr-10 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              disabled={isTyping}
             />
             <Button
               type="button"
@@ -170,7 +244,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           </div>
           <Button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim()}
+            disabled={!inputMessage.trim() || isTyping}
             className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
           >
             <Send className="w-4 h-4" />

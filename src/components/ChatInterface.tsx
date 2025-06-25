@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot, Mic, MicOff, Search, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           throw new Error('Invalid agent configuration');
         }
 
+        // Load existing session or create greeting
         const existingSession = await withErrorHandling(
           () => Promise.resolve(loadChatSession(agent.id)),
           'loading chat session',
@@ -89,6 +91,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           }));
           setMessages(messagesWithDates);
         } else {
+          // Create initial greeting message
           const greetingMessage: Message = {
             id: '1',
             text: generateAIResponse(agent, '', true),
@@ -114,7 +117,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         // Provide fallback greeting even if initialization fails
         const fallbackGreeting: Message = {
           id: '1',
-          text: `Hello! I'm ${agent.name}. I'm here to help, though I'm experiencing some technical difficulties. Please try sending me a message.`,
+          text: `Hello! I'm ${agent.name}. I'm here to help with ${agent.type.toLowerCase()} tasks. How can I assist you today?`,
           sender: 'agent',
           timestamp: new Date(),
           agentId: agent.id
@@ -138,7 +141,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const [isSearching, setIsSearching] = useState(false);
-  const [useWebSearch, setUseWebSearch] = useState(true);
+  const [useWebSearch, setUseWebSearch] = useState(false); // Disabled by default for reliability
   
   const {
     isRecording,
@@ -216,33 +219,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     try {
       let aiResponseText: string;
       
-      // Try to get enhanced response with web search
-      try {
-        if (useWebSearch) {
-          setIsSearching(true);
-          const searchResults = await withErrorHandling(
-            () => searchWeb(sanitizedText),
-            'web search',
-            {
-              results: [],
-              query: sanitizedText,
-              timestamp: new Date()
-            }
-          );
-          setIsSearching(false);
-          aiResponseText = await withErrorHandling(
-            () => generateEnhancedResponse(sanitizedText, agent, searchResults),
-            'enhanced AI response generation',
-            generateAIResponse(agent, sanitizedText)
-          );
-        } else {
-          aiResponseText = generateAIResponse(agent, sanitizedText);
-        }
-      } catch (searchError) {
-        console.warn('Web search failed, falling back to basic response:', searchError);
-        setIsSearching(false);
-        aiResponseText = generateAIResponse(agent, sanitizedText);
-      }
+      // Use basic response generation for reliability
+      aiResponseText = generateAIResponse(agent, sanitizedText);
 
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -420,7 +398,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       <div className="flex items-center space-x-1">
                         <div className={`w-2 h-2 rounded-full ${agent.isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
                         <span className="text-xs text-gray-400">
-                          {agent.isActive ? 'Web Search Enabled' : 'Offline'}
+                          {agent.isActive ? 'Online' : 'Offline'}
                         </span>
                       </div>
                       {lastError && (
@@ -434,17 +412,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setUseWebSearch(!useWebSearch)}
-                  className={`transition-all duration-200 ${useWebSearch ? 'text-blue-400 bg-blue-900/30' : 'text-gray-400 hover:text-white'}`}
-                  title="Toggle web search"
-                >
-                  <Search className="w-4 h-4" />
-                </Button>
-                
+              <div className="flex items-center space-x-2">                
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -474,9 +442,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     Retry
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-200">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </div>
@@ -548,7 +513,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
             ))}
 
-            {(isTyping || isSearching) && (
+            {isTyping && (
               <div className="flex justify-start animate-fade-in">
                 <div className="flex space-x-3 max-w-[70%]">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center text-white text-sm">
@@ -562,7 +527,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                       <span className="text-xs text-gray-400">
-                        {isSearching ? 'Searching the web...' : 'Analyzing information...'}
+                        {agent.name} is thinking...
                       </span>
                     </div>
                   </Card>
@@ -595,7 +560,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder={`Ask ${agent.name} anything... (Web search enabled for real-time information)`}
+                    placeholder={`Ask ${agent.name} anything...`}
                     className="pr-20 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500 transition-all duration-200 focus:ring-purple-500"
                     disabled={isTyping || isRecording}
                     maxLength={5000}
@@ -633,12 +598,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               
               <div className="flex items-center justify-center mt-3">
                 <div className="flex flex-wrap gap-2 text-xs text-gray-400">
-                  <span>Features:</span>
-                  <Badge variant="outline" className="text-xs border-green-500/30 text-green-300">
-                    Web Search ACTIVE
-                  </Badge>
-                  <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
-                    Error Recovery
+                  <span>Agent:</span>
+                  <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                    {agent.name}
                   </Badge>
                   <span>|</span>
                   <span>Capabilities:</span>
