@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import IntegrationHub from "@/components/IntegrationHub";
 import CreateAgentModal from "@/components/CreateAgentModal";
 import OnboardingModal from "@/components/OnboardingModal";
 import SettingsPanel from "@/components/SettingsPanel";
+import HomePage from "@/components/HomePage";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
 
 // Mock data for agent templates
@@ -150,6 +150,10 @@ const Index = () => {
     setActiveTab("agents");
   };
 
+  const handleNavigateToTab = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
       <header className="bg-gray-800/50 backdrop-blur-md sticky top-0 z-50">
@@ -182,12 +186,12 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border border-purple-500/30">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Dashboard
+            <TabsTrigger value="home" className="data-[state=active]:bg-purple-600">
+              <Brain className="w-4 h-4 mr-2" />
+              Home
             </TabsTrigger>
             <TabsTrigger value="agents" className="data-[state=active]:bg-purple-600">
-              <Brain className="w-4 h-4 mr-2" />
+              <Users className="w-4 h-4 mr-2" />
               Agents
             </TabsTrigger>
             <TabsTrigger value="chat" className="data-[state=active]:bg-purple-600">
@@ -198,30 +202,23 @@ const Index = () => {
               <Zap className="w-4 h-4 mr-2" />
               Integrations
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="data-[state=active]:bg-purple-600">
-              <Users className="w-4 h-4 mr-2" />
-              Marketplace
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Dashboard
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger value="marketplace" className="data-[state=active]:bg-purple-600">
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              More
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard">
-            <Card className="bg-gray-800/50 border-purple-500/30">
-              <CardHeader>
-                <CardTitle className="text-white">Dashboard</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Overview of your AI Agents and activity.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-white">
-                  Welcome to your AI-powered dashboard!
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="home">
+            <HomePage 
+              onNavigate={handleNavigateToTab}
+              onCreateAgent={() => setIsCreateModalOpen(true)}
+              agents={agents}
+              currentAgent={currentAgent}
+            />
           </TabsContent>
 
           <TabsContent value="agents">
@@ -335,6 +332,22 @@ const Index = () => {
 
           <TabsContent value="integrations">
             <IntegrationHub />
+          </TabsContent>
+
+          <TabsContent value="dashboard">
+            <Card className="bg-gray-800/50 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white">Dashboard</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Overview of your AI Agents and activity.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white">
+                  Welcome to your AI-powered dashboard!
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="marketplace">
