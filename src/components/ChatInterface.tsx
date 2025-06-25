@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot, Mic, MicOff, Search, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -224,7 +223,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           const searchResults = await withErrorHandling(
             () => searchWeb(sanitizedText),
             'web search',
-            []
+            {
+              results: [],
+              query: sanitizedText,
+              timestamp: new Date()
+            }
           );
           setIsSearching(false);
           aiResponseText = await withErrorHandling(
