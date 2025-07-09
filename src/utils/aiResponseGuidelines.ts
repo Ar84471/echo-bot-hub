@@ -188,5 +188,3 @@ export const assessResponseQuality = (response: string): {
   
   return { score, feedback, improvements };
 };
-
-export { ResponseGuidelines, DEFAULT_GUIDELINES };
