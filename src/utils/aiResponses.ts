@@ -1,4 +1,5 @@
-import { generateAIResponse as generateFromProviders } from './aiProviders';
+
+import { generateEnhancedAIResponse } from './enhancedAI';
 
 interface Agent {
   id: string;
@@ -11,116 +12,41 @@ interface Agent {
   capabilities: string[];
 }
 
-// Enhanced mathematical calculation function
-const evaluateMathExpression = (expression: string): string | null => {
-  try {
-    const cleanExpression = expression.replace(/\s/g, '');
-    const mathPattern = /^[0-9+\-*/().^%\s]+$/;
-    if (!mathPattern.test(cleanExpression)) {
-      return null;
-    }
-    
-    let jsExpression = cleanExpression.replace(/\^/g, '**');
-    const result = Function(`"use strict"; return (${jsExpression})`)();
-    
-    if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
-      return result.toString();
-    }
-    
-    return null;
-  } catch (error) {
-    return null;
-  }
-};
-
-// Enhanced response generation with AI provider integration
+// Enhanced response generation with automatic AI provider configuration
 export const generateAIResponse = async (agent: Agent, userMessage: string, isGreeting: boolean = false): Promise<string> => {
   try {
-    // Try AI providers first
-    const aiResponse = await generateFromProviders(userMessage, agent, isGreeting);
-    return aiResponse.text;
+    // Use the enhanced AI system that automatically handles providers
+    const enhancedResponse = await generateEnhancedAIResponse(agent, userMessage, isGreeting);
+    return enhancedResponse.text;
   } catch (error) {
-    console.warn('AI providers failed, using fallback responses:', error);
-    return generateFallbackResponse(agent, userMessage, isGreeting);
+    console.warn('Enhanced AI failed, using basic fallback:', error);
+    return generateBasicFallback(agent, userMessage, isGreeting);
   }
 };
 
-// Fallback response system
-const generateFallbackResponse = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
+// Basic fallback for absolute reliability
+const generateBasicFallback = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
   if (isGreeting) {
-    const greetings = [
-      "Hello! I'm ready to help you with any questions or tasks.",
-      "Hi there! How can I assist you today?",
-      "Greetings! I'm here to help with whatever you need.",
-      "Welcome! What would you like to work on together?",
-      "Hello! I'm prepared to tackle any challenge you have."
-    ];
-    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-    return `${greeting}\n\nI'm **${agent.name}**, your specialized ${agent.type} assistant. My expertise includes ${agent.capabilities.join(', ')}.\n\nHow can I help you today?`;
+    return `Hello! I'm **${agent.name}**, your ${agent.type.toLowerCase()} specialist. I'm here to provide expert assistance with ${agent.capabilities.join(', ')}. How can I help you today?`;
   }
 
   const message = userMessage.toLowerCase().trim();
   
-  // Check for math expressions
-  const mathResult = evaluateMathExpression(userMessage);
-  if (mathResult) {
-    return `The answer is: **${mathResult}**\n\nI can help with various calculations and mathematical problems. What else would you like to know?`;
-  }
-
-  // Agent-specific responses based on type
-  const agentType = agent.type.toLowerCase();
-  const agentName = agent.name.toLowerCase();
-  
-  if (agentName.includes('codeforge') || agentName.includes('code') || agentType.includes('development')) {
-    return generateCodeResponse(message, agent);
+  // Enhanced contextual responses based on user input
+  if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+    return `Hello! I'm ${agent.name}, ready to assist you with ${agent.type.toLowerCase()} tasks. What would you like to work on?`;
   }
   
-  if (agentName.includes('muse') || agentType.includes('creative') || agentType.includes('writing')) {
-    return generateCreativeResponse(message, agent);
+  if (message.includes('help') || message.includes('assist')) {
+    return `I'm here to help! As your ${agent.type.toLowerCase()} specialist, I can assist with:\n\n${agent.capabilities.map(cap => `• **${cap}** - Providing expert guidance and solutions`).join('\n')}\n\nWhat specific challenge can I help you tackle?`;
   }
   
-  if (agentName.includes('sherlock') || agentType.includes('analytics') || agentType.includes('data')) {
-    return generateAnalyticsResponse(message, agent);
+  if (message.includes('what') || message.includes('how') || message.includes('why')) {
+    return `Great question! Let me provide you with a comprehensive answer.\n\nAs ${agent.name}, I specialize in ${agent.type.toLowerCase()} and can offer detailed insights on topics like:\n\n${agent.capabilities.map(cap => `• ${cap}`).join('\n')}\n\nCould you provide a bit more context about what specifically you'd like to know? This will help me give you the most accurate and helpful response.`;
   }
   
-  if (agentName.includes('athena') || agentType.includes('strategy') || agentType.includes('business')) {
-    return generateStrategyResponse(message, agent);
-  }
-
-  // Default personalized response
-  return `**🤖 ${agent.name} - Specialized AI Assistant**\n\nHello! I'm ${agent.name}, your ${agent.type.toLowerCase()} specialist. I'm designed to help with:\n\n**My Core Capabilities:**\n${agent.capabilities.map(cap => `- **${cap}** - Providing expert guidance and support`).join('\n')}\n\n**How I Can Help:**\n- Answer questions related to ${agent.type.toLowerCase()}\n- Provide detailed analysis and insights\n- Offer practical solutions and recommendations\n- Share best practices and expert knowledge\n\nPlease share your specific question or challenge, and I'll provide detailed, actionable guidance tailored to your needs!`;
-};
-
-const generateCodeResponse = (userMessage: string, agent: Agent): string => {
-  if (userMessage.includes('debug') || userMessage.includes('error') || userMessage.includes('fix')) {
-    return `**🔍 Debugging Analysis by ${agent.name}**\n\nI'm analyzing your code issue. Here's my systematic approach:\n\n**1. Error Pattern Recognition:**\n- Checking for common syntax errors\n- Identifying logical inconsistencies\n- Reviewing variable scope issues\n\n**2. Debugging Strategy:**\n\`\`\`javascript\n// Add strategic console.log statements\nconsole.log('Debug point 1:', variableName);\n\n// Check for null/undefined values\nif (data === null || data === undefined) {\n  console.error('Data is null/undefined');\n  return;\n}\n\`\`\`\n\nShare your specific error message and code snippet for targeted assistance!`;
-  }
-  
-  return `**💻 ${agent.name} - Your Code Architecture Expert**\n\nI specialize in:\n- **Clean Code Architecture** - SOLID principles, design patterns\n- **Modern JavaScript/TypeScript** - ES6+, async/await, type safety\n- **React Development** - Hooks, state management, performance\n- **API Design** - RESTful services, GraphQL, authentication\n\nWhat coding challenge can I help you solve today?`;
-};
-
-const generateCreativeResponse = (userMessage: string, agent: Agent): string => {
-  if (userMessage.includes('story') || userMessage.includes('content') || userMessage.includes('write')) {
-    return `**🎨 ${agent.name} - Your Creative Partner**\n\nI'm here to unleash your creative potential:\n\n**Writing & Content:**\n- Stories, novels, and screenplays\n- Blog posts and articles\n- Marketing copy and sales pages\n- Social media content\n\n**Creative Strategy:**\n- Brand storytelling and voice development\n- Content planning and editorial calendars\n- Creative campaign ideation\n\nWhat creative project should we bring to life together?`;
-  }
-  
-  return `**✍️ Creative Excellence with ${agent.name}**\n\nI'm your creative writing and content specialist. Let's create something amazing together!\n\nWhat type of content are you looking to create?`;
-};
-
-const generateAnalyticsResponse = (userMessage: string, agent: Agent): string => {
-  if (userMessage.includes('data') || userMessage.includes('analyze') || userMessage.includes('insights')) {
-    return `**📊 Data Analysis Insights with ${agent.name}**\n\n**Analytics Capabilities:**\n- **Data Mining** - Discovering hidden patterns\n- **Statistical Analysis** - Hypothesis testing, regression\n- **Predictive Modeling** - Forecasting trends\n- **Performance Tracking** - KPI monitoring\n\nWhat data would you like me to help you analyze?`;
-  }
-  
-  return `**🔍 ${agent.name} - Your Data Detective**\n\nI specialize in turning raw data into actionable business intelligence. What business challenge needs data-driven insights?`;
-};
-
-const generateStrategyResponse = (userMessage: string, agent: Agent): string => {
-  if (userMessage.includes('plan') || userMessage.includes('strategy') || userMessage.includes('business')) {
-    return `**🎯 Strategic Planning with ${agent.name}**\n\n**Strategic Planning Services:**\n- **Business Strategy Development** - Vision, mission, objectives\n- **Market Analysis** - Industry trends, competitive landscape\n- **Growth Planning** - Expansion strategies\n- **Risk Assessment** - Identifying business risks\n\nWhat strategic challenge requires wisdom and insight today?`;
-  }
-  
-  return `**🏛️ ${agent.name} - Your Strategic Advisor**\n\nI provide comprehensive strategic guidance for business growth and decision-making. What strategic challenge can I help with?`;
+  // Default comprehensive response
+  return `Thank you for your message: "${userMessage}"\n\nI'm ${agent.name}, your dedicated ${agent.type.toLowerCase()} assistant. I'm designed to provide thoughtful, detailed assistance with:\n\n${agent.capabilities.map(cap => `• **${cap}** - Expert analysis and practical solutions`).join('\n')}\n\nTo give you the most helpful response, could you tell me more about what you're trying to accomplish or what specific aspect you'd like me to focus on?`;
 };
 
 export const getTypingDelay = (): number => {

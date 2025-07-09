@@ -70,7 +70,7 @@ const SimpleChatInterface: React.FC<SimpleChatInterfaceProps> = ({ agent }) => {
         console.error('Failed to initialize chat:', error);
         const fallbackMessage: Message = {
           id: '1',
-          text: `Hello! I'm ${agent.name}. How can I help you today?`,
+          text: `Hello! I'm ${agent.name}, your ${agent.type.toLowerCase()} specialist. I'm here to provide expert assistance with ${agent.capabilities.join(', ')}. How can I help you today?`,
           sender: 'agent',
           timestamp: new Date(),
           provider: 'fallback'

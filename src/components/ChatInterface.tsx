@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Paperclip, MoreVertical, Bot, Mic, MicOff, Search, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -91,10 +90,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           }));
           setMessages(messagesWithDates);
         } else {
-          // Create initial greeting message
+          // Create initial greeting message with await
+          const greetingText = await generateAIResponse(agent, '', true);
           const greetingMessage: Message = {
             id: '1',
-            text: generateAIResponse(agent, '', true),
+            text: greetingText,
             sender: 'agent',
             timestamp: new Date(),
             agentId: agent.id
@@ -217,10 +217,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     // Generate AI response with comprehensive error handling
     try {
-      let aiResponseText: string;
-      
-      // Use basic response generation for reliability
-      aiResponseText = generateAIResponse(agent, sanitizedText);
+      // Use async generateAIResponse properly
+      const aiResponseText = await generateAIResponse(agent, sanitizedText);
 
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -240,7 +238,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     } catch (error) {
       console.error('Error generating AI response:', error);
       setIsTyping(false);
-      setIsSearching(false);
       setRetryCount(prev => prev + 1);
       
       // Create fallback response
@@ -326,9 +323,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const handleClearChat = async () => {
     try {
+      const greetingText = await generateAIResponse(agent, '', true);
       const greetingMessage: Message = {
         id: Date.now().toString(),
-        text: generateAIResponse(agent, '', true),
+        text: greetingText,
         sender: 'agent',
         timestamp: new Date(),
         agentId: agent.id
