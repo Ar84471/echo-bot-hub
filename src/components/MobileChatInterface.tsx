@@ -1,12 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Send, Bot, Mic, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Send, Bot, Mic, MoreVertical, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { generateAIResponse } from '@/utils/aiResponses';
+import { validateMessage } from '@/utils/inputValidation';
+import { useMobileFeatures } from '@/hooks/useMobileFeatures';
+import { useToast } from '@/hooks/use-toast';
+import APIKeyManager from './APIKeyManager';
 
 interface Agent {
   id: string;
@@ -47,31 +51,60 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   const [inputMessage, setInputMessage] = useState('');
   const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const [isTyping, setIsTyping] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const { hapticFeedback } = useMobileFeatures();
+  const { toast } = useToast();
 
   useEffect(() => {
     setLocalMessages(messages);
   }, [messages]);
 
-  // Initialize with greeting if no messages
   useEffect(() => {
     if (agent && localMessages.length === 0) {
-      const greetingMessage: Message = {
-        id: '1',
-        text: generateAIResponse(agent, '', true),
-        sender: 'agent',
-        timestamp: new Date(),
-        agentId: agent.id
+      const initializeGreeting = async () => {
+        try {
+          const greetingText = await generateAIResponse(agent, '', true);
+          const greetingMessage: Message = {
+            id: '1',
+            text: greetingText,
+            sender: 'agent',
+            timestamp: new Date(),
+            agentId: agent.id
+          };
+          setLocalMessages([greetingMessage]);
+        } catch (error) {
+          console.error('Failed to generate greeting:', error);
+          const fallbackMessage: Message = {
+            id: '1',
+            text: `Hello! I'm ${agent.name}. How can I help you today?`,
+            sender: 'agent',
+            timestamp: new Date(),
+            agentId: agent.id
+          };
+          setLocalMessages([fallbackMessage]);
+        }
       };
-      setLocalMessages([greetingMessage]);
+
+      initializeGreeting();
     }
   }, [agent, localMessages.length]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !agent) return;
     
+    const validation = validateMessage(inputMessage.trim());
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid Input",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: validation.sanitizedInput!,
       sender: 'user',
       timestamp: new Date(),
       agentId: agent.id
@@ -81,22 +114,39 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
     setInputMessage('');
     setIsTyping(true);
 
-    // Call parent handler if provided, otherwise generate local response
+    // Haptic feedback
+    await hapticFeedback();
+
     if (onSendMessage) {
-      onSendMessage(inputMessage);
+      onSendMessage(validation.sanitizedInput!);
     } else {
-      // Generate local AI response
-      setTimeout(() => {
+      try {
+        const aiResponseText = await generateAIResponse(agent, validation.sanitizedInput!);
+        
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: generateAIResponse(agent, inputMessage),
+          text: aiResponseText,
           sender: 'agent',
           timestamp: new Date(),
           agentId: agent.id
         };
+        
         setLocalMessages(prev => [...prev, aiResponse]);
+      } catch (error) {
+        console.error('Failed to generate AI response:', error);
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+          sender: 'agent',
+          timestamp: new Date(),
+          agentId: agent.id
+        };
+        
+        setLocalMessages(prev => [...prev, errorMessage]);
+      } finally {
         setIsTyping(false);
-      }, 1000);
+      }
     }
   };
 
@@ -135,9 +185,26 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               </Badge>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-gray-400">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-gray-400">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 border-purple-500/30">
+                <DialogHeader>
+                  <DialogTitle className="text-white">AI Configuration</DialogTitle>
+                </DialogHeader>
+                <APIKeyManager onKeysUpdated={() => setShowSettings(false)} />
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="ghost" size="sm" className="text-gray-400">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -232,12 +299,14 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               className="pr-10 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               disabled={isTyping}
+              maxLength={5000}
             />
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400"
+              disabled
             >
               <Mic className="w-4 h-4" />
             </Button>

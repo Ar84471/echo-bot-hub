@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, MessageSquare, Zap, Settings, Users, BarChart3, Smartphone, Plus } from "lucide-react";
 import AgentSidebar from "@/components/AgentSidebar";
-import ChatInterface from "@/components/ChatInterface";
+import SimpleChatInterface from "@/components/SimpleChatInterface";
 import MobileChatInterface from "@/components/MobileChatInterface";
 import AgentSwitcher from "@/components/AgentSwitcher";
 import IntegrationHub from "@/components/IntegrationHub";
@@ -14,7 +14,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 import SettingsPanel from "@/components/SettingsPanel";
 import HomePage from "@/components/HomePage";
 import Marketplace from "@/components/Marketplace";
-import { useMobileFeatures } from "@/hooks/useMobileFeatures";
+import { useCrossPlatform } from "@/hooks/useCrossPlatform";
 import { type CommunityAgent } from "@/data/communityAgents";
 
 // Mock data for agent templates
@@ -110,13 +110,11 @@ const Index = () => {
   const [agents, setAgents] = useState<Agent[]>(mockAgents);
   const [currentAgent, setCurrentAgent] = useState<Agent | undefined>(agents[0]);
   const [activeTab, setActiveTab] = useState("chat");
-  const { isNative } = useMobileFeatures();
+  const { isMobile, isTablet, isNative, optimizeForPlatform } = useCrossPlatform();
 
   useEffect(() => {
-    // Simulate fetching agents from an API or local storage
     setAgents(mockAgents);
 
-    // Open onboarding modal on first visit
     const hasVisited = localStorage.getItem("hasVisited");
     if (!hasVisited) {
       setIsOnboardingModalOpen(true);
@@ -126,7 +124,6 @@ const Index = () => {
 
   const handleAgentSelect = (agent: Agent) => {
     setCurrentAgent(agent);
-    // Update lastUsed timestamp
     setAgents((prevAgents) =>
       prevAgents.map((a) =>
         a.id === agent.id ? { ...a, lastUsed: new Date().toISOString() } : a
@@ -172,12 +169,19 @@ const Index = () => {
     setCurrentAgent(newAgent);
   };
 
+  // Optimize layout for different platforms
+  const tabsGridConfig = optimizeForPlatform(
+    "grid-cols-3", // Mobile: 3 columns
+    "grid-cols-4", // Tablet: 4 columns  
+    "grid-cols-6"  // Desktop: 6 columns
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
       <header className="bg-gray-800/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between">
           <div className="flex items-center">
-            {isNative && (
+            {(isMobile || isNative) && (
               <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
                 <Brain className="h-5 w-5" />
                 <span className="sr-only">Toggle Sidebar</span>
@@ -188,14 +192,16 @@ const Index = () => {
             </CardTitle>
           </div>
           <div className="space-x-2 flex items-center">
-            <AgentSwitcher
-              agents={agents}
-              currentAgent={currentAgent}
-              onSwitchAgent={handleAgentSelect}
-            />
-            <Button onClick={() => setIsSettingsOpen(true)}>
+            {!isMobile && (
+              <AgentSwitcher
+                agents={agents}
+                currentAgent={currentAgent}
+                onSwitchAgent={handleAgentSelect}
+              />
+            )}
+            <Button onClick={() => setIsSettingsOpen(true)} size={isMobile ? "sm" : "default"}>
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              {!isMobile && "Settings"}
             </Button>
           </div>
         </div>
@@ -203,31 +209,35 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border border-purple-500/30">
+          <TabsList className={`grid w-full ${tabsGridConfig} bg-gray-800/50 border border-purple-500/30`}>
             <TabsTrigger value="home" className="data-[state=active]:bg-purple-600">
               <Brain className="w-4 h-4 mr-2" />
-              Home
+              {!isMobile && "Home"}
             </TabsTrigger>
             <TabsTrigger value="agents" className="data-[state=active]:bg-purple-600">
               <Users className="w-4 h-4 mr-2" />
-              Agents
+              {!isMobile && "Agents"}
             </TabsTrigger>
             <TabsTrigger value="chat" className="data-[state=active]:bg-purple-600">
               <MessageSquare className="w-4 h-4 mr-2" />
-              Chat
+              {!isMobile && "Chat"}
             </TabsTrigger>
             <TabsTrigger value="integrations" className="data-[state=active]:bg-purple-600">
               <Zap className="w-4 h-4 mr-2" />
-              Integrations
+              {!isMobile && "Integrations"}
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="marketplace" className="data-[state=active]:bg-purple-600">
-              <Smartphone className="w-4 h-4 mr-2" />
-              Marketplace
-            </TabsTrigger>
+            {!isMobile && (
+              <>
+                <TabsTrigger value="dashboard" className="data-[state=active]:bg-purple-600">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger value="marketplace" className="data-[state=active]:bg-purple-600">
+                  <Smartphone className="w-4 h-4 mr-2" />
+                  Marketplace
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="home">
@@ -241,7 +251,7 @@ const Index = () => {
 
           <TabsContent value="agents">
             <div className="flex flex-col md:flex-row">
-              {!isNative && isSidebarOpen && (
+              {!isMobile && !isNative && isSidebarOpen && (
                 <div className="w-full md:w-64 mr-4">
                   <AgentSidebar
                     agents={agents}
@@ -260,7 +270,11 @@ const Index = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className={`grid gap-4 ${optimizeForPlatform(
+                      'grid-cols-1', 
+                      'grid-cols-2', 
+                      'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+                    )}`}>
                       {agents.map((agent) => (
                         <Card
                           key={agent.id}
@@ -316,7 +330,7 @@ const Index = () => {
 
           <TabsContent value="chat">
             {currentAgent ? (
-              isNative ? (
+              (isMobile || isNative) ? (
                 <MobileChatInterface 
                   agent={currentAgent}
                   agents={agents}
@@ -325,12 +339,7 @@ const Index = () => {
                   onSendMessage={(message) => console.log("Sending message:", message)}
                 />
               ) : (
-                <ChatInterface 
-                  agent={currentAgent}
-                  agents={agents}
-                  onBack={handleBackToAgents}
-                  onSwitchAgent={handleAgentSelect}
-                />
+                <SimpleChatInterface agent={currentAgent} />
               )
             ) : (
               <Card className="bg-gray-800/50 border-purple-500/30">
@@ -370,22 +379,6 @@ const Index = () => {
 
           <TabsContent value="marketplace">
             <Marketplace onInstallAgent={handleInstallCommunityAgent} />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card className="bg-gray-800/50 border-purple-500/30">
-              <CardHeader>
-                <CardTitle className="text-white">Settings</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Manage your account preferences and settings.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-white">
-                  Customize your experience and manage your account settings.
-                </p>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>
