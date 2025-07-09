@@ -1,5 +1,5 @@
 
-import { generateEnhancedAIResponse } from './enhancedAI';
+import { generateEnhancedAIResponse } from './enhancedAIResponses';
 
 interface Agent {
   id: string;
@@ -12,41 +12,100 @@ interface Agent {
   capabilities: string[];
 }
 
-// Enhanced response generation with automatic AI provider configuration
+// Main AI response generation with comprehensive guidelines
 export const generateAIResponse = async (agent: Agent, userMessage: string, isGreeting: boolean = false): Promise<string> => {
   try {
-    // Use the enhanced AI system that automatically handles providers
+    // Use the enhanced AI system with comprehensive guidelines
     const enhancedResponse = await generateEnhancedAIResponse(agent, userMessage, isGreeting);
     return enhancedResponse.text;
   } catch (error) {
-    console.warn('Enhanced AI failed, using basic fallback:', error);
-    return generateBasicFallback(agent, userMessage, isGreeting);
+    console.warn('Enhanced AI with guidelines failed, using basic fallback:', error);
+    return generateBasicGuidelinesFallback(agent, userMessage, isGreeting);
   }
 };
 
-// Basic fallback for absolute reliability
-const generateBasicFallback = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
+// Basic fallback that still follows guidelines
+const generateBasicGuidelinesFallback = (agent: Agent, userMessage: string, isGreeting: boolean = false): string => {
   if (isGreeting) {
-    return `Hello! I'm **${agent.name}**, your ${agent.type.toLowerCase()} specialist. I'm here to provide expert assistance with ${agent.capabilities.join(', ')}. How can I help you today?`;
+    return `Hello! I'm **${agent.name}**, and I'm genuinely excited to help you today!
+
+I'm your dedicated ${agent.type.toLowerCase()} specialist, designed to provide comprehensive, conversational assistance with ${agent.capabilities.join(', ')}.
+
+**What makes me different:**
+- I engage in real conversations, not just Q&A
+- I provide thorough, detailed responses with context
+- I adapt my style to match your needs
+- I'm genuinely focused on being as helpful as possible
+
+**How can I help you today?** Feel free to ask me anything - whether you need detailed explanations, creative brainstorming, problem-solving assistance, or just want to explore ideas together!`;
   }
 
   const message = userMessage.toLowerCase().trim();
   
-  // Enhanced contextual responses based on user input
+  // Generate conversational, guidelines-based responses
   if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
-    return `Hello! I'm ${agent.name}, ready to assist you with ${agent.type.toLowerCase()} tasks. What would you like to work on?`;
+    return `Hey there! I'm ${agent.name}, and I'm really glad you reached out!
+
+I'm here to provide thorough, conversational assistance with ${agent.type.toLowerCase()} challenges. Whether you need detailed explanations, creative problem-solving, or just want to brainstorm ideas together - I'm all in!
+
+What's on your mind today? I'm genuinely excited to help however I can!`;
   }
   
   if (message.includes('help') || message.includes('assist')) {
-    return `I'm here to help! As your ${agent.type.toLowerCase()} specialist, I can assist with:\n\n${agent.capabilities.map(cap => `• **${cap}** - Providing expert guidance and solutions`).join('\n')}\n\nWhat specific challenge can I help you tackle?`;
+    return `Absolutely! I'm here to help, and I love what I do!
+
+As your ${agent.type.toLowerCase()} specialist, I can provide comprehensive assistance with:
+
+${agent.capabilities.map(cap => `• **${cap}** - Detailed guidance with practical applications`).join('\n')}
+
+**My approach is always:**
+- Direct and thorough - you'll get complete, useful answers
+- Conversational and engaging - we're having a real discussion
+- Context-rich - I provide background and examples
+- Adaptable - I match my style to what works best for you
+
+What specific challenge or topic would you like to dive into? I'm genuinely excited to explore this with you!`;
   }
   
   if (message.includes('what') || message.includes('how') || message.includes('why')) {
-    return `Great question! Let me provide you with a comprehensive answer.\n\nAs ${agent.name}, I specialize in ${agent.type.toLowerCase()} and can offer detailed insights on topics like:\n\n${agent.capabilities.map(cap => `• ${cap}`).join('\n')}\n\nCould you provide a bit more context about what specifically you'd like to know? This will help me give you the most accurate and helpful response.`;
+    return `That's a fantastic question! I love diving deep into topics and providing comprehensive explanations.
+
+Here's how I'll approach your question about "${userMessage}":
+
+**My Process:**
+- First, I'll make sure I understand exactly what you're looking for
+- Then I'll provide detailed, contextual information
+- I'll include examples and practical applications where helpful
+- Finally, I'll offer follow-up assistance and related insights
+
+As **${agent.name}**, I specialize in ${agent.type.toLowerCase()} and can offer detailed insights on:
+
+${agent.capabilities.map(cap => `• **${cap}** - In-depth analysis with practical applications`).join('\n')}
+
+To give you the most valuable response, could you share a bit more context about what specifically interests you most about this topic? I'm here to provide as much detail and assistance as you need!`;
   }
   
-  // Default comprehensive response
-  return `Thank you for your message: "${userMessage}"\n\nI'm ${agent.name}, your dedicated ${agent.type.toLowerCase()} assistant. I'm designed to provide thoughtful, detailed assistance with:\n\n${agent.capabilities.map(cap => `• **${cap}** - Expert analysis and practical solutions`).join('\n')}\n\nTo give you the most helpful response, could you tell me more about what you're trying to accomplish or what specific aspect you'd like me to focus on?`;
+  // Default comprehensive, guidelines-based response
+  return `Thank you for reaching out with: "${userMessage}"
+
+I'm **${agent.name}**, your dedicated ${agent.type.toLowerCase()} assistant, and I'm genuinely excited to help you with this!
+
+**How I approach every interaction:**
+- **Conversational & Engaging** - We're having a real discussion, not just Q&A
+- **Thorough & Detailed** - You'll get comprehensive, useful responses
+- **Context-Rich** - I provide background, examples, and practical insights
+- **Genuinely Helpful** - My goal is to be as useful as possible
+
+**My expertise includes:**
+${agent.capabilities.map(cap => `• **${cap}** - Expert analysis with actionable insights`).join('\n')}
+
+To give you the most helpful response possible, I'd love to understand more about:
+- What specific outcomes you're looking for
+- Any particular challenges you're facing
+- Your preferred level of detail (high-level overview vs. deep dive)
+- Any context that might be relevant
+
+What aspect would be most valuable for us to explore together? I'm here to provide whatever depth of assistance you need!`;
 };
 
 export const getTypingDelay = (): number => {
