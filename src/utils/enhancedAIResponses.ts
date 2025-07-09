@@ -1,4 +1,3 @@
-
 import { enhanceResponseWithGuidelines, DEFAULT_GUIDELINES, ENHANCED_RESPONSE_PATTERNS } from './aiResponseGuidelines';
 
 interface Agent {
@@ -22,7 +21,7 @@ interface EnhancedAIResponse {
 }
 
 // Comprehensive response generation with guidelines
-export const generateEnhancedAIResponse = async (
+const generateEnhancedAIResponse = async (
   agent: Agent,
   userMessage: string,
   isGreeting: boolean = false
