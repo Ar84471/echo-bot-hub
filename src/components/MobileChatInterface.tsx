@@ -60,12 +60,12 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
   }, [messages]);
 
   useEffect(() => {
-    if (agent && localMessages.length === 0) {
+    if (agent && localMessages.length === 0 && messages.length === 0) {
       const initializeGreeting = async () => {
         try {
           const greetingText = await generateAIResponse(agent, '', true);
           const greetingMessage: Message = {
-            id: '1',
+            id: 'greeting-' + agent.id,
             text: greetingText,
             sender: 'agent',
             timestamp: new Date(),
@@ -75,7 +75,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
         } catch (error) {
           console.error('Failed to generate greeting:', error);
           const fallbackMessage: Message = {
-            id: '1',
+            id: 'greeting-' + agent.id,
             text: `Hello! I'm ${agent.name}. How can I help you today?`,
             sender: 'agent',
             timestamp: new Date(),
@@ -87,7 +87,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
 
       initializeGreeting();
     }
-  }, [agent, localMessages.length]);
+  }, [agent?.id]); // Only depend on agent ID to prevent infinite loops
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !agent) return;
@@ -156,31 +156,31 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
 
   if (!agent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex items-center justify-center">
-        <div className="text-center text-white">
-          <Bot className="w-12 h-12 mx-auto mb-4 text-purple-500" />
-          <h2 className="text-xl font-semibold">No Agent Selected</h2>
-          <p className="text-gray-400">Please select an agent to start chatting</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-accent flex items-center justify-center">
+      <div className="text-center text-foreground">
+        <Bot className="w-12 h-12 mx-auto mb-4 text-primary" />
+        <h2 className="text-xl font-semibold">No Agent Selected</h2>
+        <p className="text-muted-foreground">Please select an agent to start chatting</p>
       </div>
+    </div>
     );
   }
 
   const displayMessages = localMessages.length > 0 ? localMessages : messages;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-accent flex flex-col">
       {/* Header */}
-      <div className="bg-black/90 backdrop-blur-sm border-b border-purple-500/20 p-4">
+      <div className="bg-card/90 backdrop-blur-sm border-b border-border p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" onClick={onBack} className="text-gray-300">
+            <Button variant="ghost" size="sm" onClick={onBack} className="text-muted-foreground">
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="text-xl">{agent.avatar}</div>
             <div>
-              <h1 className="text-sm font-semibold text-white">{agent.name}</h1>
-              <Badge variant="secondary" className="text-xs bg-purple-900/50 text-purple-300">
+              <h1 className="text-sm font-semibold text-foreground">{agent.name}</h1>
+              <Badge variant="secondary" className="text-xs">
                 {agent.type}
               </Badge>
             </div>
@@ -189,19 +189,19 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           <div className="flex items-center space-x-2">
             <Dialog open={showSettings} onOpenChange={setShowSettings}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-400">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
                   <Settings className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 border-purple-500/30">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-white">AI Configuration</DialogTitle>
+                  <DialogTitle className="text-foreground">AI Configuration</DialogTitle>
                 </DialogHeader>
                 <APIKeyManager onKeysUpdated={() => setShowSettings(false)} />
               </DialogContent>
             </Dialog>
             
-            <Button variant="ghost" size="sm" className="text-gray-400">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </div>
@@ -214,15 +214,15 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           {displayMessages.length === 0 && (
             <div className="text-center py-8">
               <div className="text-4xl mb-4">{agent.avatar}</div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Chat with {agent.name}
               </h3>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {agent.description}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {agent.capabilities.slice(0, 2).map((capability, index) => (
-                  <Badge key={index} variant="outline" className="text-xs border-purple-500/30 text-purple-300">
+                  <Badge key={index} variant="outline" className="text-xs">
                     {capability}
                   </Badge>
                 ))}
@@ -238,11 +238,11 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               <div className={`flex space-x-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                 <div className="flex-shrink-0 mt-1">
                   {message.sender === 'agent' ? (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
-                      <Bot className="w-3 h-3 text-white" />
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Bot className="w-3 h-3 text-primary-foreground" />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-medium">
+                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-medium">
                       U
                     </div>
                   )}
@@ -250,12 +250,12 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
                 
                 <Card className={`p-3 ${
                   message.sender === 'user' 
-                    ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white' 
-                    : 'bg-gray-800/70 backdrop-blur-sm border-purple-500/20 text-white'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-card/70 backdrop-blur-sm border-border text-foreground'
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                   <p className={`text-xs mt-1 ${
-                    message.sender === 'user' ? 'text-purple-100' : 'text-gray-400'
+                    message.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                   }`}>
                     {formatTime(message.timestamp)}
                   </p>
@@ -267,17 +267,17 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex space-x-2 max-w-[80%]">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 flex items-center justify-center">
-                  <Bot className="w-3 h-3 text-white" />
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <Bot className="w-3 h-3 text-primary-foreground" />
                 </div>
-                <Card className="p-3 bg-gray-800/70 backdrop-blur-sm border-purple-500/20">
+                <Card className="p-3 bg-card/70 backdrop-blur-sm border-border">
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {agent.name} is thinking...
                     </span>
                   </div>
@@ -289,14 +289,14 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="bg-black/90 backdrop-blur-sm border-t border-purple-500/20 p-4">
+      <div className="bg-card/90 backdrop-blur-sm border-t border-border p-4">
         <div className="flex space-x-2">
           <div className="flex-1 relative">
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder={`Message ${agent.name}...`}
-              className="pr-10 border-purple-500/30 bg-gray-800 text-white placeholder:text-gray-500"
+              className="pr-10"
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               disabled={isTyping}
               maxLength={5000}
@@ -305,7 +305,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
               type="button"
               variant="ghost"
               size="sm"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 text-muted-foreground"
               disabled
             >
               <Mic className="w-4 h-4" />
@@ -314,7 +314,7 @@ const MobileChatInterface: React.FC<MobileChatInterfaceProps> = ({
           <Button
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isTyping}
-            className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
+            className="bg-primary hover:bg-primary/90"
           >
             <Send className="w-4 h-4" />
           </Button>

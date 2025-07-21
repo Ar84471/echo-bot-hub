@@ -1,5 +1,4 @@
 
-import { generateEnhancedAIResponse } from './enhancedAIResponses';
 
 interface Agent {
   id: string;
@@ -14,14 +13,8 @@ interface Agent {
 
 // Main AI response generation with comprehensive guidelines
 export const generateAIResponse = async (agent: Agent, userMessage: string, isGreeting: boolean = false): Promise<string> => {
-  try {
-    // Use the enhanced AI system with comprehensive guidelines
-    const enhancedResponse = await generateEnhancedAIResponse(agent, userMessage, isGreeting);
-    return enhancedResponse.text;
-  } catch (error) {
-    console.warn('Enhanced AI with guidelines failed, using basic fallback:', error);
-    return generateBasicGuidelinesFallback(agent, userMessage, isGreeting);
-  }
+  // Always use the reliable fallback for mobile stability
+  return generateBasicGuidelinesFallback(agent, userMessage, isGreeting);
 };
 
 // Basic fallback that still follows guidelines
