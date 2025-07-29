@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Brain, MessageSquare, Zap, Settings, Users, BarChart3, Plus, ArrowRight, Sparkles, Download, FileText, Wallet } from 'lucide-react';
 import { downloadReadmeFile, downloadSourceCode } from '@/utils/downloadUtils';
 import { WalletConnection } from '@/components/WalletConnection';
-import { NFTMinter } from '@/components/NFTMinter';
+import { EtherlinkNFTMinter } from '@/components/EtherlinkNFTMinter';
 
 interface HomePageProps {
   onNavigate: (tab: string) => void;
@@ -195,7 +195,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onCreateAgent, agents, 
           </h2>
           <div className="space-y-6">
             <WalletConnection />
-            <NFTMinter />
+            <EtherlinkNFTMinter />
           </div>
         </div>
 
