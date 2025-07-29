@@ -3,8 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, MessageSquare, Zap, Settings, Users, BarChart3, Plus, ArrowRight, Sparkles, Download, FileText } from 'lucide-react';
+import { Brain, MessageSquare, Zap, Settings, Users, BarChart3, Plus, ArrowRight, Sparkles, Download, FileText, Wallet } from 'lucide-react';
 import { downloadReadmeFile, downloadSourceCode } from '@/utils/downloadUtils';
+import { WalletConnection } from '@/components/WalletConnection';
+import { NFTMinter } from '@/components/NFTMinter';
 
 interface HomePageProps {
   onNavigate: (tab: string) => void;
@@ -183,54 +185,69 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onCreateAgent, agents, 
         </div>
       )}
 
-      {/* Download Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Download className="w-6 h-6 mr-2 text-purple-500" />
-          Download Project Files
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="bg-gray-800/50 border-gray-700 hover:border-purple-500/50 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">README.md</h3>
-                  <p className="text-sm text-gray-400">Complete project documentation</p>
-                </div>
-              </div>
-              <Button 
-                onClick={downloadReadmeFile}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download README
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Web3 & Download Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Web3 Section */}
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Wallet className="w-6 h-6 mr-2 text-purple-500" />
+            Web3 Features
+          </h2>
+          <div className="space-y-6">
+            <WalletConnection />
+            <NFTMinter />
+          </div>
+        </div>
 
-          <Card className="bg-gray-800/50 border-gray-700 hover:border-purple-500/50 transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
+        {/* Download Section */}
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Download className="w-6 h-6 mr-2 text-purple-500" />
+            Download Project Files
+          </h2>
+          <div className="space-y-4">
+            <Card className="bg-gray-800/50 border-gray-700 hover:border-purple-500/50 transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">README.md</h3>
+                    <p className="text-sm text-gray-400">Complete project documentation</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white">Source Code</h3>
-                  <p className="text-sm text-gray-400">Main application files and structure</p>
+                <Button 
+                  onClick={downloadReadmeFile}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download README
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-gray-700 hover:border-purple-500/50 transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">Source Code</h3>
+                    <p className="text-sm text-gray-400">Main application files and structure</p>
+                  </div>
                 </div>
-              </div>
-              <Button 
-                onClick={downloadSourceCode}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Code
-              </Button>
-            </CardContent>
-          </Card>
+                <Button 
+                  onClick={downloadSourceCode}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Code
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
